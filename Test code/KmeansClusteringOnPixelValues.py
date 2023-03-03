@@ -72,19 +72,25 @@ print(kmeans.labels_[:20])
 def retrieve_info(cluster_labels,train_target_numpyArray):
     reference_labels={}
     for i in range(len(np.unique(kmeans.labels_))):
+        #If cluster label = i, assign 1. Otherwise assign 0.
         index = np.where(cluster_labels == i,1,0)
         if i==1:
             print("\nINDEX\n")
             print(index[:200],"\n\n")
             print("CLUSTER LABEL VALUES: \n")
             print(cluster_labels[:200])
+        #count all the train_targets where index == 1, and pick the biggest one
+        #e.g. train_target == 0 corresponds to index 1 three times, train_target == 1 corresponds to index 1 eight times, etc.
         num = np.bincount(train_target_numpyArray[index==1]).argmax()
         reference_labels[i]=num
     return reference_labels 
 
 #Assign labels
 reference_labels = retrieve_info(kmeans.labels_,train_target_numpyArray)
+#Initializes the array - ignore random.rand
 number_labels = np.random.rand(len(kmeans.labels_))
+
+#For picture 0, find corresponding kmeans_label. Then find the actual number that kmeans.label points to.
 for i in range(len(kmeans.labels_)):
     number_labels[i]=reference_labels[kmeans.labels_[i]]
 
