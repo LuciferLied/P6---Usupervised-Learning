@@ -133,3 +133,12 @@ data/MNIST/raw/t10k-labels-idx1-ubyte
 data/MNIST/raw/train-images-idx3-ubyte
 data/MNIST/raw/train-labels-idx1-ubyte
 .vscode/settings.json
+*.meta
+Test code/data/cifar-10-batches-py/data_batch_1
+Test code/data/cifar-10-batches-py/data_batch_2
+Test code/data/cifar-10-batches-py/data_batch_4
+Test code/data/cifar-10-batches-py/data_batch_3
+Test code/data/cifar-10-batches-py/data_batch_5
+Test code/data/cifar-10-batches-py/test_batch
+*.png
+Test code/data/cifar-10-batches-py/readme.html
