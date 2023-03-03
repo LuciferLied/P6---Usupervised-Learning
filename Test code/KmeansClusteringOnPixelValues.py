@@ -64,10 +64,6 @@ train_numpyArray= train_numpyArray.squeeze()
 test_numpyArray=np.array(test_numpyList)
 test_numpyArray= test_numpyArray.squeeze()
 
-#print(train_target[50000])
-#plt.imshow(train_numpyArray[50000])
-#plt.show()
-
 train_reshaped=train_numpyArray.reshape(len(train_numpyArray),-1)
 test_reshaped=test_numpyArray.reshape(len(test_numpyArray),-1)
 
