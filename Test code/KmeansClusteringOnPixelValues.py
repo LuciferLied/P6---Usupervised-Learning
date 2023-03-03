@@ -88,15 +88,13 @@ number_labels = np.random.rand(len(kmeans.labels_))
 for i in range(len(kmeans.labels_)):
     number_labels[i]=reference_labels[kmeans.labels_[i]]
 
-print(reference_labels)
-
 #Print and compute accuracy
 print("\nReference labels:")
 print(reference_labels)
 
 print("\nPredicted & actual values: ")
 print(number_labels[:20].astype('int'))
-print(train_target_numpyArray[:20],"\n\n")
+print(train_target_numpyArray[:20],"\n")
 
 accuracy_score = (accuracy_score(number_labels, train_target_numpyArray))
 print("\nAccuracy: ", round(accuracy_score*100), "%")
