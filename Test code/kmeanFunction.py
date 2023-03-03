@@ -5,11 +5,10 @@ from torch.utils.data import DataLoader
 from torchvision import datasets
 from torchvision.transforms import ToTensor
 import matplotlib.pyplot as plt
-import warnings
 from sklearn.cluster import KMeans
 from sklearn.metrics import accuracy_score
 from sklearn.cluster import MiniBatchKMeans
-import kmeanFunction
+import time
 
 
 def downloadData(dataset):
@@ -121,3 +120,42 @@ def printSpecificPicture(array, index):
     plt.gray()
     plt.imshow(array[index])
     plt.show()
+
+
+def runClustering(train_data, test_data, train_reshaped, train_target_numpyArray, test_reshaped, test_target_numpyArray, train_numpyArray, test_numpyArray):
+    
+    start_time = time.time()
+    kmeansLabels = generateClusters(train_reshaped, test_target_numpyArray)
+    reference_labels = retrieveInfo(kmeansLabels,train_target_numpyArray)
+    number_labels = assignPredictions(kmeansLabels, reference_labels)
+    accuracy = printPerformanceMetrics(reference_labels, number_labels, train_target_numpyArray)
+    #func.printSpecificPicture(train_numpyArray, 0)
+    time_elapsed = time.time()-start_time
+    return time_elapsed, accuracy
+
+def runProgram(train_data, test_data, train_reshaped, train_target_numpyArray, test_reshaped, test_target_numpyArray, train_numpyArray, test_numpyArray):
+    print("RUN\n\n")
+    
+    iterations = 10
+    i=iterations
+    time_elapsed_list = []
+    accuracy_list = []
+
+    while i>0:
+        time_elapsed, accuracy = runClustering(train_data, test_data, train_reshaped, train_target_numpyArray, test_reshaped, test_target_numpyArray, train_numpyArray, test_numpyArray)
+        print("STATS: ", i, "Time elapsed: ", time_elapsed, "Accuracy: ", accuracy)
+        time_elapsed_list.append(time_elapsed)
+        accuracy_list.append(accuracy)
+        i-=1
+    
+    print("\n\nTIME ELAPSED: ")
+    print(time_elapsed_list, "\n")
+    print("ACCURACY: ")
+    print(accuracy_list, "\n")
+    print("AVERAGE ACCURACY:")
+    print(round(sum(accuracy_list)/len(accuracy_list),2))
+    print("AVERAGE TIME:")
+    print(round(sum(time_elapsed_list)/len(time_elapsed_list),2))
+    print("\nFINISHED")
+            
+        
