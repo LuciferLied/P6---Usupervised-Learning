@@ -17,6 +17,7 @@ train_set = datasets.MNIST(
     download=True,
     transform=ToTensor(),
 )
+
 train_loader = data.DataLoader(train_set, batch_size=batch_size, shuffle=True)
 
 
@@ -77,7 +78,6 @@ for epoch in range(epochs):
 
     # Show progress
     print('[{}/{}] Loss:'.format(epoch+1, epochs), loss.item())
-
 
 # Save
 torch.save(model, 'autoencoder.pth')
