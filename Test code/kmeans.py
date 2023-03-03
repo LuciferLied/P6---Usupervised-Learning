@@ -39,5 +39,5 @@ data = list(zip(x, y))
 clusters = KMeans(n_clusters=2,n_init='auto')
 clusters.fit(image)
 
-plt.scatter(x, y, c=clusters.labels_)
+plt.scatter(x, y)
 plt.savefig('test.png')
