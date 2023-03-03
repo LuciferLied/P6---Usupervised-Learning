@@ -12,7 +12,7 @@ from sklearn.cluster import KMeans
 training_data = datasets.MNIST(
     root="data",
     train=True,
-    download=False,
+    download=True,
     transform=ToTensor(),
 )
 
@@ -20,7 +20,7 @@ training_data = datasets.MNIST(
 test_data = datasets.MNIST(
     root="data",
     train=False,
-    download=False,
+    download=True,
     transform=ToTensor(),
 )
 

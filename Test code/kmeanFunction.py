@@ -141,20 +141,17 @@ def runProgram(train_data, test_data, train_reshaped, train_target_numpyArray, t
     time_elapsed_list = []
     accuracy_list = []
 
+    print("STATS: ")
     while i>0:
         time_elapsed, accuracy = runClustering(train_data, test_data, train_reshaped, train_target_numpyArray, test_reshaped, test_target_numpyArray, train_numpyArray, test_numpyArray)
-        print("STATS: ", i, "Time elapsed: ", time_elapsed, "Accuracy: ", accuracy)
+        print("{:<2}:   Time elapsed: {:<5.3f}   |   Accuracy: {:<5.3f}".format(10-i, time_elapsed, accuracy))
         time_elapsed_list.append(time_elapsed)
         accuracy_list.append(accuracy)
         i-=1
     
-    print("\n\nTIME ELAPSED: ")
-    print(time_elapsed_list, "\n")
-    print("ACCURACY: ")
-    print(accuracy_list, "\n")
-    print("AVERAGE ACCURACY:")
+    print("\n\nAVERAGE ACCURACY:")
     print(round(sum(accuracy_list)/len(accuracy_list),2))
-    print("AVERAGE TIME:")
+    print("\nAVERAGE TIME:")
     print(round(sum(time_elapsed_list)/len(time_elapsed_list),2))
     print("\nFINISHED")
             
