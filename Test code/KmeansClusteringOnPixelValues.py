@@ -102,8 +102,8 @@ print("\nPredicted & actual values: ")
 print(number_labels[:20].astype('int'))
 print(train_target_numpyArray[:20],"\n")
 
-accuracy_score = (accuracy_score(number_labels, train_target_numpyArray))
-print("\nAccuracy: ", round(accuracy_score*100), "%")
+accuracy = (accuracy_score(number_labels, train_target_numpyArray))
+print("\nAccuracy: ", accuracy, "%")
 
 #Prints picture
 """plt.gray()
