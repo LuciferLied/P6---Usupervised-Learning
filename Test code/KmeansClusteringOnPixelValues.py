@@ -80,6 +80,11 @@ def retrieve_info(cluster_labels,train_target_numpyArray):
     reference_labels={}
     for i in range(len(np.unique(kmeans.labels_))):
         index = np.where(cluster_labels == i,1,0)
+        if i==1:
+            print("\nINDEX\n")
+            print(index[:200],"\n\n")
+            print("CLUSTER LABEL VALUES: \n")
+            print(cluster_labels[:200])
         num = np.bincount(train_target_numpyArray[index==1]).argmax()
         reference_labels[i]=num
     return reference_labels 
@@ -89,6 +94,8 @@ reference_labels = retrieve_info(kmeans.labels_,train_target_numpyArray)
 number_labels = np.random.rand(len(kmeans.labels_))
 for i in range(len(kmeans.labels_)):
     number_labels[i]=reference_labels[kmeans.labels_[i]]
+
+print(reference_labels)
 
 #Print and compute accuracy
 print("\nReference labels:")
@@ -102,9 +109,9 @@ accuracy_score = (accuracy_score(number_labels, train_target_numpyArray))
 print("\nAccuracy: ", round(accuracy_score*100), "%")
 
 #Prints picture
-plt.gray()
+"""plt.gray()
 plt.imshow(train_numpyArray[0])
-plt.show()
+plt.show()"""
 
 print("FINISHED")
 
