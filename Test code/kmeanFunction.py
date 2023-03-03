@@ -9,7 +9,6 @@ import warnings
 from sklearn.cluster import KMeans
 from sklearn.metrics import accuracy_score
 from sklearn.cluster import MiniBatchKMeans
-import timeit
 import kmeanFunction
 
 
@@ -71,8 +70,8 @@ def generateClusters(train_reshaped, test_target_numpyArray):
     kmeans=MiniBatchKMeans(n_clusters = total_clusters)
     kmeans.fit(train_reshaped)
     kmeansLabels = kmeans.labels_
-    print("\nKmeans Labels: ")
-    print(kmeans.labels_[:20])        
+    #print("\nKmeans Labels: ")
+    #print(kmeans.labels_[:20])        
     return kmeansLabels
 
 #Associates each cluster with most probable label
@@ -81,11 +80,11 @@ def retrieveInfo(kmeansLabels,train_target_numpyArray):
     for i in range(len(np.unique(kmeansLabels))):
         #If cluster label = i, assign 1. Otherwise assign 0.
         index = np.where(kmeansLabels == i,1,0)
-        if i==1:
-            print("\nINDEX\n")
-            print(index[:200],"\n\n")
-            print("CLUSTER LABEL VALUES: \n")
-            print(kmeansLabels[:200])
+        #if i==1:
+            #print("\nINDEX\n")
+            #print(index[:200],"\n\n")
+            #print("CLUSTER LABEL VALUES: \n")
+            #print(kmeansLabels[:200])
 
         #count all the train_targets where index == 1, and pick the biggest one
         #e.g. train_target == 0 corresponds to index 1 three times, train_target == 1 corresponds to index 1 eight times, etc.
@@ -105,16 +104,17 @@ def assignPredictions(kmeansLabels, reference_labels):
 
 def printPerformanceMetrics(reference_labels, number_labels, train_target_numpyArray):
     #Print and compute accuracy 
-    print("\nReference labels:")
-    print(reference_labels)
+    #print("\nReference labels:")
+    #print(reference_labels)
 
-    print("\nPredicted & actual values: ")
-    print(number_labels[:20].astype('int'))
-    print(train_target_numpyArray[:20],"\n")
+    #print("\nPredicted & actual values: ")
+    #print(number_labels[:20].astype('int'))
+    #print(train_target_numpyArray[:20],"\n")
 
     #Computers and prints accuracy
     accuracy = accuracy_score(number_labels, train_target_numpyArray)
-    print("\nAccuracy: ", round(accuracy*100), "%")
+    #print("\nAccuracy: ", round(accuracy*100), "%")
+    return accuracy
 
 def printSpecificPicture(array, index):
     #Prints picture
