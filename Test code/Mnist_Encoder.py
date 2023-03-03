@@ -1,4 +1,3 @@
-# coding: utf-8
 import torch
 import torch.nn as nn
 import torch.utils.data as data
@@ -25,7 +24,7 @@ train_loader = data.DataLoader(train_set, batch_size=batch_size, shuffle=True)
 class AutoEncoder(nn.Module):
     def __init__(self):
         super(AutoEncoder, self).__init__()
-
+        
         # Encoder
         self.encoder = nn.Sequential(
             nn.Linear(784, 128),
@@ -36,7 +35,7 @@ class AutoEncoder(nn.Module):
             nn.Tanh(),
             nn.Linear(16, 2),
         )
-
+        
         # Decoder
         self.decoder = nn.Sequential(
             nn.Linear(2, 16),
