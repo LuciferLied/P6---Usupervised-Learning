@@ -6,10 +6,12 @@ import numpy as np
 
 
 def main():
+    print("\nProgram initialized")
     warnings.filterwarnings("ignore")
     train_data, test_data = func.downloadData(datasets.MNIST)
     train_reshaped, train_target_numpyArray, test_reshaped, test_target_numpyArray, train_numpyArray, test_numpyArray = func.purifyData(train_data, test_data)
-    func.runProgram(train_data, test_data, train_reshaped, train_target_numpyArray, test_reshaped, test_target_numpyArray, train_numpyArray, test_numpyArray)
-
+    accuracy_list, time_elapsed_list = func.runProgram(train_data, test_data, train_reshaped, train_target_numpyArray, test_reshaped, test_target_numpyArray, train_numpyArray, test_numpyArray)
+    func.statsPrint(accuracy_list, time_elapsed_list)
+    print("End program\n")
 main()
 

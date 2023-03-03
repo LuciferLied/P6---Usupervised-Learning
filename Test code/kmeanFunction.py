@@ -9,7 +9,7 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import accuracy_score
 from sklearn.cluster import MiniBatchKMeans
 import time
-
+import csv
 
 def downloadData(dataset):
     # Download training data from open datasets.
@@ -134,25 +134,29 @@ def runClustering(train_data, test_data, train_reshaped, train_target_numpyArray
     return time_elapsed, accuracy
 
 def runProgram(train_data, test_data, train_reshaped, train_target_numpyArray, test_reshaped, test_target_numpyArray, train_numpyArray, test_numpyArray):
-    print("RUN\n\n")
-    
-    iterations = 10
+    iterations = int(input("Enter number of iterations as integer: "))
     i=iterations
     time_elapsed_list = []
     accuracy_list = []
-
+    print("\nInitializing computations\n")
     print("STATS: ")
     while i>0:
         time_elapsed, accuracy = runClustering(train_data, test_data, train_reshaped, train_target_numpyArray, test_reshaped, test_target_numpyArray, train_numpyArray, test_numpyArray)
-        print("{:<2}:   Time elapsed: {:<5.3f}   |   Accuracy: {:<5.3f}".format(10-i, time_elapsed, accuracy))
+        print("{:<2}:   Time elapsed: {:<5.3f}   |   Accuracy: {:<5.3f}".format(iterations-i, time_elapsed, accuracy))
         time_elapsed_list.append(time_elapsed)
         accuracy_list.append(accuracy)
         i-=1
     
-    print("\n\nAVERAGE ACCURACY:")
-    print(round(sum(accuracy_list)/len(accuracy_list),2))
-    print("\nAVERAGE TIME:")
-    print(round(sum(time_elapsed_list)/len(time_elapsed_list),2))
-    print("\nFINISHED")
-            
-        
+    print("\nEnd computations")
+    return accuracy_list, time_elapsed_list
+
+def statsPrint(accuracy_list, time_elapsed_list):
+    print("\n\nAVERAGE ACCURACY: {:>6.3f}".format(sum(accuracy_list)/len(accuracy_list)))
+    print("HIGHEST ACCURACY: {:>6.3f}".format(max(accuracy_list)))
+    print("LOWEST ACCURACY: {:>7.3f}".format(min(accuracy_list)))
+    print("________________________")
+    print("\nAVERAGE TIME: {:>10.3f}".format(sum(time_elapsed_list)/len(time_elapsed_list)))
+    print("SHORTEST TIME: {:>9.3f}".format(max(time_elapsed_list)))
+    print("LONGEST TIME: {:>10.3f}\n".format(min(time_elapsed_list)))
+
+#def saveToCSV():
