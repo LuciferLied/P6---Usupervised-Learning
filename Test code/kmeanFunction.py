@@ -115,8 +115,8 @@ def printPerformanceMetrics(reference_labels, number_labels, train_target_numpyA
     #print("\nAccuracy: ", round(accuracy*100), "%")
     return accuracy
 
-def printSpecificPicture(array, index):
     #Prints picture
+def printSpecificPicture(array, index):
     plt.gray()
     plt.imshow(array[index])
     plt.show()
