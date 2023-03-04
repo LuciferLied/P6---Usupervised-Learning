@@ -163,3 +163,4 @@ def saveToCSV(accuracy_list, time_elapsed_list):
     stats_CSV = open('CSVstats', 'w')
     writer = csv.writer(stats_CSV)
     writer.writerow(time_elapsed_list)
+    writer.writerow(accuracy_list)
