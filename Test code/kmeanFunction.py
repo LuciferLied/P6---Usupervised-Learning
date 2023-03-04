@@ -159,7 +159,7 @@ def statsPrint(accuracy_list, time_elapsed_list):
     print("SHORTEST TIME: {:>9.3f}".format(min(time_elapsed_list)))
     print("LONGEST TIME: {:>10.3f}\n".format(max(time_elapsed_list)))
 
-"""def saveToCSV(accuracy_list, time_elapsed_list):
-    stats_CSV = open('', 'w')
+def saveToCSV(accuracy_list, time_elapsed_list):
+    stats_CSV = open('CSVstats', 'w')
     writer = csv.writer(stats_CSV)
-    writer.writerow(time_elapsed_list)"""
+    writer.writerow(time_elapsed_list)
