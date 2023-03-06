@@ -12,10 +12,10 @@ transform = transforms.ToTensor()
 
 # Download the training and test datasets
 train_data = datasets.CIFAR10(
-    root='data', train=True, download=True, transform=transform)
+    root='./data', train=True, download=True, transform=transform)
 
 test_data = datasets.CIFAR10(
-    root='data', train=False, download=True, transform=transform)
+    root='./data', train=False, download=True, transform=transform)
 
 # Prepare data loaders
 train_loader = torch.utils.data.DataLoader(
@@ -85,10 +85,10 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 
 def get_device():
-    if torch.cuda.is_available():
-        device = 'cuda:0'
-    else:
-        device = 'cpu'
+    # if torch.cuda.is_available():
+    #     device = 'cuda:0'
+    # else:
+    device = 'cpu'
     return device
 
 
