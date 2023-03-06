@@ -148,3 +148,4 @@ Test code/data/MNIST/raw/train-labels-idx1-ubyte
 Test code/data/MNIST/raw/train-images-idx3-ubyte
 Test code/data/MNIST/raw/t10k-images-idx3-ubyte
 .vscode/c_cpp_properties.json
+autoencoder.pth
