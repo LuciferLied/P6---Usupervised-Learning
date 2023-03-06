@@ -138,7 +138,7 @@ for idx in np.arange(5):
     ax = fig.add_subplot(1, 5, idx+1, xticks=[], yticks=[])
     imshow(images[idx])
     ax.set_title(classes[labels[idx]])
-plt.savefig('Orignal.png')
+plt.savefig('Pics/Orignal.png')
 
 # Reconstructed Images
 print('Reconstructed Images')
@@ -148,4 +148,4 @@ for idx in np.arange(5):
     ax = fig.add_subplot(1, 5, idx+1, xticks=[], yticks=[])
     imshow(output[idx])
     ax.set_title(classes[labels[idx]])
-plt.savefig('Recon.png')
+plt.savefig('Pics/Recon.png')
