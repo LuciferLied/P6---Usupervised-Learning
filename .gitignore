@@ -151,3 +151,10 @@ Test code/data/MNIST/raw/t10k-images-idx3-ubyte
 autoencoder.pth
 CSVstats
 CSVstats.csv
+KmeansClustering/data/cifar-10-batches-py/data_batch_1
+KmeansClustering/data/cifar-10-batches-py/data_batch_2
+KmeansClustering/data/cifar-10-batches-py/data_batch_4
+KmeansClustering/data/cifar-10-batches-py/data_batch_5
+KmeansClustering/data/cifar-10-batches-py/data_batch_3
+KmeansClustering/data/cifar-10-batches-py/readme.html
+KmeansClustering/data/cifar-10-batches-py/test_batch
