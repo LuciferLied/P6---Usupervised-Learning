@@ -36,9 +36,7 @@ def purifyData(train_data, test_data):
 
 
     train_numpyList = []
-    train_target_numpyList = []
     test_numpyList = []
-    test_taget_numpyList = []
 
     x = 0
     for x in train_purified:
@@ -50,7 +48,7 @@ def purifyData(train_data, test_data):
 
     #convert targets to NP_arrays
     train_target_numpyArray = np.array(train_target)
-    test_target_numpyArray = np.array(test_target)
+    #test_target_numpyArray = np.array(test_target)
 
     train_numpyArray=np.array(train_numpyList)
     train_numpyArray= train_numpyArray.squeeze()
@@ -59,12 +57,12 @@ def purifyData(train_data, test_data):
     test_numpyArray= test_numpyArray.squeeze()
 
     train_reshaped=train_numpyArray.reshape(len(train_numpyArray),-1)
-    test_reshaped=test_numpyArray.reshape(len(test_numpyArray),-1)
+    #test_reshaped=test_numpyArray.reshape(len(test_numpyArray),-1)
     
-    return train_reshaped, train_target_numpyArray, test_reshaped, test_target_numpyArray, train_numpyArray, test_numpyArray
+    return train_reshaped, train_target_numpyArray
 
 #Generates clusters based on pixel values
-def generateClusters(train_reshaped, test_target_numpyArray, total_clusters):
+def generateClusters(train_reshaped, total_clusters):
     #total_clusters = len(np.unique(test_target_numpyArray))
     kmeans=MiniBatchKMeans(n_clusters = total_clusters)
     kmeans.fit(train_reshaped)
@@ -101,7 +99,7 @@ def assignPredictions(kmeansLabels, reference_labels):
 
     return number_labels
 
-def printPerformanceMetrics(reference_labels, number_labels, train_target_numpyArray):
+def printPerformanceMetrics(number_labels, train_target_numpyArray):
     #Print and compute accuracy 
     #print("\nReference labels:")
     #print(reference_labels)
@@ -122,18 +120,18 @@ def printSpecificPicture(array, index):
     plt.show()
 
 
-def runClustering(train_data, test_data, train_reshaped, train_target_numpyArray, test_reshaped, test_target_numpyArray, train_numpyArray, test_numpyArray, total_clusters):
+def runClustering(train_reshaped, train_target_numpyArray, total_clusters):
     
     start_time = time.time()
-    kmeansLabels, kmeans = generateClusters(train_reshaped, test_target_numpyArray, total_clusters)
+    kmeansLabels, kmeans = generateClusters(train_reshaped, total_clusters)
     reference_labels = retrieveInfo(kmeansLabels,train_target_numpyArray)
     number_labels = assignPredictions(kmeansLabels, reference_labels)
-    accuracy = printPerformanceMetrics(reference_labels, number_labels, train_target_numpyArray)
+    accuracy = printPerformanceMetrics(number_labels, train_target_numpyArray)
     #func.printSpecificPicture(train_numpyArray, 0)
     time_elapsed = time.time()-start_time
     return time_elapsed, accuracy, kmeans
 
-def runProgram(train_data, test_data, train_reshaped, train_target_numpyArray, test_reshaped, test_target_numpyArray, train_numpyArray, test_numpyArray):
+def runProgram(train_reshaped, train_target_numpyArray):
     iterations = int(input("Enter number of iterations as integer: "))
     total_clusters = int(input("Enter number of clusters as integer: "))
 
@@ -144,7 +142,7 @@ def runProgram(train_data, test_data, train_reshaped, train_target_numpyArray, t
     print("\nInitializing computations\n")
     print("STATS: ")
     while i>0:
-        time_elapsed, accuracy, kmeans = runClustering(train_data, test_data, train_reshaped, train_target_numpyArray, test_reshaped, test_target_numpyArray, train_numpyArray, test_numpyArray, total_clusters)
+        time_elapsed, accuracy, kmeans = runClustering(train_reshaped, train_target_numpyArray, total_clusters)
         print("{:<2}:   Time elapsed: {:<5.3f}   |   Accuracy: {:<5.3f}".format(iterations-i, time_elapsed, accuracy))
         time_elapsed_list.append(time_elapsed)
         accuracy_list.append(accuracy)
