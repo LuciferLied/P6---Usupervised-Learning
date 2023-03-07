@@ -99,16 +99,9 @@ def assignPredictions(kmeansLabels, reference_labels):
 
     return number_labels
 
-def printPerformanceMetrics(number_labels, train_target_numpyArray):
+def computeAccuracy(number_labels, train_target_numpyArray):
     #Print and compute accuracy 
-    #print("\nReference labels:")
-    #print(reference_labels)
 
-    #print("\nPredicted & actual values: ")
-    #print(number_labels[:20].astype('int'))
-    #print(train_target_numpyArray[:20],"\n")
-
-    #Computers and prints accuracy
     accuracy = accuracy_score(number_labels, train_target_numpyArray)
     #print("\nAccuracy: ", round(accuracy*100), "%")
     return accuracy
@@ -126,7 +119,7 @@ def runClustering(train_reshaped, train_target_numpyArray, total_clusters):
     kmeansLabels, kmeans = generateClusters(train_reshaped, total_clusters)
     reference_labels = retrieveInfo(kmeansLabels,train_target_numpyArray)
     number_labels = assignPredictions(kmeansLabels, reference_labels)
-    accuracy = printPerformanceMetrics(number_labels, train_target_numpyArray)
+    accuracy = computeAccuracy(number_labels, train_target_numpyArray)
     #func.printSpecificPicture(train_numpyArray, 0)
     time_elapsed = time.time()-start_time
     return time_elapsed, accuracy, kmeans
