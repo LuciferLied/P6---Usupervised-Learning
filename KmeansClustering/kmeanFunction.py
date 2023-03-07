@@ -6,6 +6,7 @@ from torchvision import datasets
 from torchvision.transforms import ToTensor
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
+from sklearn import metrics
 from sklearn.metrics import accuracy_score
 from sklearn.cluster import MiniBatchKMeans
 import time
@@ -120,30 +121,46 @@ def runProgram(train_reshaped, train_target_numpyArray):
     i=iterations
     time_elapsed_list = []
     accuracy_list = []
-    kmeans_list =[]
+    inertia_list = []
+    homogeneity_list = []
     print("\nInitializing computations\n")
     print("STATS: ")
     while i>0:
         time_elapsed, accuracy, kmeans = runClustering(train_reshaped, train_target_numpyArray, total_clusters)
-        print("{:<2}:   Time elapsed: {:<5.3f}   |   Accuracy: {:<5.3f}".format(iterations-i, time_elapsed, accuracy))
+        print("{:<2}:   Time elapsed: {:<5.3f}   |   Accuracy: {:<5.3f}   |   Inertia: {:<5.3f}   |   Homogeneity: {:<5.3f}".format(iterations-i, time_elapsed, accuracy, kmeans.inertia_, metrics.homogeneity_score(train_target_numpyArray, kmeans.labels_)))
         time_elapsed_list.append(time_elapsed)
         accuracy_list.append(accuracy)
-        kmeans_list.append(kmeans)
+        inertia_list.append(kmeans.inertia_)
+        homogeneity_list.append(metrics.homogeneity_score(train_target_numpyArray, kmeans.labels_))
         i-=1
 
     
     print("\nEnd computations")
-    return accuracy_list, time_elapsed_list, kmeans_list
+    return accuracy_list, time_elapsed_list, inertia_list, homogeneity_list, total_clusters
 
-def statsPrint(accuracy_list, time_elapsed_list, model):
+def statsPrint(accuracy_list, time_elapsed_list, inertia_list, homogeneity_list, total_clusters):
     print("\n\nAVERAGE ACCURACY: {:>6.3f}".format(sum(accuracy_list)/len(accuracy_list)))
     print("HIGHEST ACCURACY: {:>6.3f}".format(max(accuracy_list)))
     print("LOWEST ACCURACY: {:>7.3f}".format(min(accuracy_list)))
+    
     print("________________________")
+
+    print("\nAVERAGE INERTIA: {:>10.3f}".format(sum(inertia_list)/len(inertia_list)))
+    print("HIGHEST INERTIA: {:>10.3f}\n\n".format(max(inertia_list)))
+    print("LOWEST INERTIA: {:>9.3f}".format(min(inertia_list)))
+
+    print("________________________")
+
+    print("\nAVERAGE HOMOGENEITY: {:>10.3f}".format(sum(homogeneity_list)/len(homogeneity_list)))
+    print("HIGHEST HOMOGENEITY: {:>10.3f}\n\n".format(max(homogeneity_list)))
+    print("LOWEST HOMOGENEITY: {:>9.3f}".format(min(homogeneity_list)))
+
+    print("________________________")
+
     print("\nAVERAGE TIME: {:>10.3f}".format(sum(time_elapsed_list)/len(time_elapsed_list)))
     print("SHORTEST TIME: {:>9.3f}".format(min(time_elapsed_list)))
     print("LONGEST TIME: {:>10.3f}\n\n".format(max(time_elapsed_list)))
-    print("Number of clusters: {}".format(model[0].n_clusters))
+    print("Number of clusters: {}".format(total_clusters))
 
     
 def saveToCSV(accuracy_list, time_elapsed_list):
