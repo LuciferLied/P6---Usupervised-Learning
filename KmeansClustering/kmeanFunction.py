@@ -139,28 +139,28 @@ def runProgram(train_reshaped, train_target_numpyArray):
     return accuracy_list, time_elapsed_list, inertia_list, homogeneity_list, total_clusters
 
 def statsPrint(accuracy_list, time_elapsed_list, inertia_list, homogeneity_list, total_clusters):
-    print("\n\nAVERAGE ACCURACY: {:>6.3f}".format(sum(accuracy_list)/len(accuracy_list)))
-    print("HIGHEST ACCURACY: {:>6.3f}".format(max(accuracy_list)))
-    print("LOWEST ACCURACY: {:>7.3f}".format(min(accuracy_list)))
+    print("\n\nAVERAGE ACCURACY: {:>8.3f}".format(sum(accuracy_list)/len(accuracy_list)))
+    print("HIGHEST ACCURACY: {:>8.3f}".format(max(accuracy_list)))
+    print("LOWEST ACCURACY: {:>9.3f}".format(min(accuracy_list)))
     
     print("________________________")
 
-    print("\nAVERAGE INERTIA: {:>10.3f}".format(sum(inertia_list)/len(inertia_list)))
-    print("HIGHEST INERTIA: {:>10.3f}\n\n".format(max(inertia_list)))
-    print("LOWEST INERTIA: {:>9.3f}".format(min(inertia_list)))
+    print("\nAVERAGE INERTIA: {:>15.1f}".format(sum(inertia_list)/len(inertia_list)))
+    print("HIGHEST INERTIA: {:>15.1f}".format(max(inertia_list)))
+    print("LOWEST INERTIA: {:>16.1f}".format(min(inertia_list)))
 
     print("________________________")
 
-    print("\nAVERAGE HOMOGENEITY: {:>10.3f}".format(sum(homogeneity_list)/len(homogeneity_list)))
-    print("HIGHEST HOMOGENEITY: {:>10.3f}\n\n".format(max(homogeneity_list)))
-    print("LOWEST HOMOGENEITY: {:>9.3f}".format(min(homogeneity_list)))
+    print("\nAVERAGE HOMOGENEITY: {:>5.3f}".format(sum(homogeneity_list)/len(homogeneity_list)))
+    print("HIGHEST HOMOGENEITY: {:>5.3f}".format(max(homogeneity_list)))
+    print("LOWEST HOMOGENEITY: {:>6.3f}".format(min(homogeneity_list)))
 
     print("________________________")
 
-    print("\nAVERAGE TIME: {:>10.3f}".format(sum(time_elapsed_list)/len(time_elapsed_list)))
-    print("SHORTEST TIME: {:>9.3f}".format(min(time_elapsed_list)))
-    print("LONGEST TIME: {:>10.3f}\n\n".format(max(time_elapsed_list)))
-    print("Number of clusters: {}".format(total_clusters))
+    print("\nAVERAGE TIME: {:>12.3f}".format(sum(time_elapsed_list)/len(time_elapsed_list)))
+    print("SHORTEST TIME: {:>11.3f}".format(min(time_elapsed_list)))
+    print("LONGEST TIME: {:>12.3f}\n\n".format(max(time_elapsed_list)))
+    print("Number of clusters: {:>3}".format(total_clusters))
 
     
 def saveToCSV(accuracy_list, time_elapsed_list):
