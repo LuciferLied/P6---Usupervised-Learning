@@ -164,7 +164,8 @@ def statsPrint(accuracy_list, time_elapsed_list, inertia_list, homogeneity_list,
 
     
 def saveToCSV(accuracy_list, time_elapsed_list):
-    stats_CSV = open('C:\Skole\projekt\P6---Usupervised-Learning\KmeansClustering\dataanalysis\CSVstats.csv', 'w')
-    writer = csv.writer(stats_CSV)
-    writer.writerow(time_elapsed_list)
-    writer.writerow(accuracy_list)
+    with open('KmeansClustering/dataanalysis/CSVstats.csv', 'w', newline='') as stats_CSV:
+        writer = csv.writer(stats_CSV)
+        writer.writerow(time_elapsed_list)
+        writer.writerow(accuracy_list)
+

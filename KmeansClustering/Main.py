@@ -16,5 +16,6 @@ def main():
 
     func.saveToCSV(accuracy_list, time_elapsed_list)
     print("End program\n")
+    
 main()
 
