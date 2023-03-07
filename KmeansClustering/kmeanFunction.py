@@ -77,14 +77,6 @@ def retrieveInfo(kmeansLabels,train_target_numpyArray):
     for i in range(len(np.unique(kmeansLabels))):
         #If cluster label = i, assign 1. Otherwise assign 0.
         index = np.where(kmeansLabels == i,1,0)
-        #if i==1:
-            #print("\nINDEX\n")
-            #print(index[:200],"\n\n")
-            #print("CLUSTER LABEL VALUES: \n")
-            #print(kmeansLabels[:200])
-
-        #count all the train_targets where index == 1, and pick the biggest one
-        #e.g. train_target == 0 corresponds to index 1 three times, train_target == 1 corresponds to index 1 eight times, etc.
         num = np.bincount(train_target_numpyArray[index==1]).argmax()
         reference_labels[i]=num
     return reference_labels
@@ -100,10 +92,7 @@ def assignPredictions(kmeansLabels, reference_labels):
     return number_labels
 
 def computeAccuracy(number_labels, train_target_numpyArray):
-    #Print and compute accuracy 
-
     accuracy = accuracy_score(number_labels, train_target_numpyArray)
-    #print("\nAccuracy: ", round(accuracy*100), "%")
     return accuracy
 
     #Prints picture
@@ -120,7 +109,7 @@ def runClustering(train_reshaped, train_target_numpyArray, total_clusters):
     reference_labels = retrieveInfo(kmeansLabels,train_target_numpyArray)
     number_labels = assignPredictions(kmeansLabels, reference_labels)
     accuracy = computeAccuracy(number_labels, train_target_numpyArray)
-    #func.printSpecificPicture(train_numpyArray, 0)
+    #func.printSpecificPicture(train_numpyArray, 0)   ADD train_numpyArray back to call
     time_elapsed = time.time()-start_time
     return time_elapsed, accuracy, kmeans
 
