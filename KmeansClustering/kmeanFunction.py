@@ -64,14 +64,14 @@ def purifyData(train_data, test_data):
     return train_reshaped, train_target_numpyArray, test_reshaped, test_target_numpyArray, train_numpyArray, test_numpyArray
 
 #Generates clusters based on pixel values
-def generateClusters(train_reshaped, test_target_numpyArray):
-    total_clusters = len(np.unique(test_target_numpyArray))
+def generateClusters(train_reshaped, test_target_numpyArray, total_clusters):
+    #total_clusters = len(np.unique(test_target_numpyArray))
     kmeans=MiniBatchKMeans(n_clusters = total_clusters)
     kmeans.fit(train_reshaped)
     kmeansLabels = kmeans.labels_
     #print("\nKmeans Labels: ")
     #print(kmeans.labels_[:20])        
-    return kmeansLabels
+    return kmeansLabels, kmeans
 
 #Associates each cluster with most probable label
 def retrieveInfo(kmeansLabels,train_target_numpyArray):
@@ -122,42 +122,49 @@ def printSpecificPicture(array, index):
     plt.show()
 
 
-def runClustering(train_data, test_data, train_reshaped, train_target_numpyArray, test_reshaped, test_target_numpyArray, train_numpyArray, test_numpyArray):
+def runClustering(train_data, test_data, train_reshaped, train_target_numpyArray, test_reshaped, test_target_numpyArray, train_numpyArray, test_numpyArray, total_clusters):
     
     start_time = time.time()
-    kmeansLabels = generateClusters(train_reshaped, test_target_numpyArray)
+    kmeansLabels, kmeans = generateClusters(train_reshaped, test_target_numpyArray, total_clusters)
     reference_labels = retrieveInfo(kmeansLabels,train_target_numpyArray)
     number_labels = assignPredictions(kmeansLabels, reference_labels)
     accuracy = printPerformanceMetrics(reference_labels, number_labels, train_target_numpyArray)
     #func.printSpecificPicture(train_numpyArray, 0)
     time_elapsed = time.time()-start_time
-    return time_elapsed, accuracy
+    return time_elapsed, accuracy, kmeans
 
 def runProgram(train_data, test_data, train_reshaped, train_target_numpyArray, test_reshaped, test_target_numpyArray, train_numpyArray, test_numpyArray):
     iterations = int(input("Enter number of iterations as integer: "))
+    total_clusters = int(input("Enter number of clusters as integer: "))
+
     i=iterations
     time_elapsed_list = []
     accuracy_list = []
+    kmeans_list =[]
     print("\nInitializing computations\n")
     print("STATS: ")
     while i>0:
-        time_elapsed, accuracy = runClustering(train_data, test_data, train_reshaped, train_target_numpyArray, test_reshaped, test_target_numpyArray, train_numpyArray, test_numpyArray)
+        time_elapsed, accuracy, kmeans = runClustering(train_data, test_data, train_reshaped, train_target_numpyArray, test_reshaped, test_target_numpyArray, train_numpyArray, test_numpyArray, total_clusters)
         print("{:<2}:   Time elapsed: {:<5.3f}   |   Accuracy: {:<5.3f}".format(iterations-i, time_elapsed, accuracy))
         time_elapsed_list.append(time_elapsed)
         accuracy_list.append(accuracy)
+        kmeans_list.append(kmeans)
         i-=1
+
     
     print("\nEnd computations")
-    return accuracy_list, time_elapsed_list
+    return accuracy_list, time_elapsed_list, kmeans_list
 
-def statsPrint(accuracy_list, time_elapsed_list):
+def statsPrint(accuracy_list, time_elapsed_list, model):
     print("\n\nAVERAGE ACCURACY: {:>6.3f}".format(sum(accuracy_list)/len(accuracy_list)))
     print("HIGHEST ACCURACY: {:>6.3f}".format(max(accuracy_list)))
     print("LOWEST ACCURACY: {:>7.3f}".format(min(accuracy_list)))
     print("________________________")
     print("\nAVERAGE TIME: {:>10.3f}".format(sum(time_elapsed_list)/len(time_elapsed_list)))
     print("SHORTEST TIME: {:>9.3f}".format(min(time_elapsed_list)))
-    print("LONGEST TIME: {:>10.3f}\n".format(max(time_elapsed_list)))
+    print("LONGEST TIME: {:>10.3f}\n\n".format(max(time_elapsed_list)))
+    print("Number of clusters: {}".format(model[0].n_clusters))
+
     
 def saveToCSV(accuracy_list, time_elapsed_list):
     stats_CSV = open('C:\Skole\projekt\P6---Usupervised-Learning\KmeansClustering\dataanalysis\CSVstats.csv', 'w')
