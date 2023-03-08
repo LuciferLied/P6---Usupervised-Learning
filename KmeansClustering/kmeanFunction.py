@@ -32,6 +32,9 @@ def downloadData(dataset):
 
     return train_data, test_data
 
+#train_purified is a tuple of weird shit
+#train_numpy_array is a 4 dimensional np array of shape (60000, 1, 28, 28). The one designates RGB values (1 cause grayscale, would be 3 with RGB)
+#train_reshaped is a 2 dimensional array containing pictures squashed to a single array
 def purifyData(train_data, test_data):
     train_purified, train_target = zip(*train_data)
     test_purified, test_target = zip(*test_data)
@@ -53,15 +56,20 @@ def purifyData(train_data, test_data):
     #test_target_numpyArray = np.array(test_target)
 
     train_numpyArray=np.array(train_numpyList)
+    print(train_numpyArray)
     train_numpyArray= train_numpyArray.squeeze()
+
+
 
     test_numpyArray=np.array(test_numpyList)
     test_numpyArray= test_numpyArray.squeeze()
+
 
     train_reshaped=train_numpyArray.reshape(len(train_numpyArray),-1)
     #test_reshaped=test_numpyArray.reshape(len(test_numpyArray),-1)
     
     return train_reshaped, train_target_numpyArray
+
 
 #Generates clusters based on pixel values
 def generateClusters(train_reshaped, total_clusters):
@@ -146,9 +154,9 @@ def statsPrint(accuracy_list, time_elapsed_list, inertia_list, homogeneity_list,
     
     print("________________________")
 
-    print("\nAVERAGE INERTIA: {:>15.1f}".format(sum(inertia_list)/len(inertia_list)))
-    print("HIGHEST INERTIA: {:>15.1f}".format(max(inertia_list)))
-    print("LOWEST INERTIA: {:>16.1f}".format(min(inertia_list)))
+    print("\nAVERAGE INERTIA: {:>13.1f}".format(sum(inertia_list)/len(inertia_list)))
+    print("HIGHEST INERTIA: {:>13.1f}".format(max(inertia_list)))
+    print("LOWEST INERTIA: {:>14.1f}".format(min(inertia_list)))
 
     print("________________________")
 
