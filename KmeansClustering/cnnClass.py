@@ -21,10 +21,24 @@ class Kernel:
 
 train_data, test_data = func.downloadData(datasets.MNIST)
 
+#INITIALIZE DATA CHANGE LATER
+
+train_numpyList = []
+test_numpyList = []
 
 train_purified, train_target = zip(*train_data)
 test_purified, test_target = zip(*test_data)
+train_target_numpyArray = np.array(train_target)
+x = 0
+for x in train_purified:
+    train_numpyList.append(x.numpy())
 
-print("train_data type: ", type(train_data))
-print("train_purified: ", type(train_purified))
-print(train_purified[0])
+for x in test_purified:
+    test_numpyList.append(x.numpy())
+
+train_numpyArray=np.array(train_numpyList)
+
+print("train_numpyArray shape: ", train_numpyArray.shape)
+print(train_numpyArray)
+
+#FINISH INITIALIZING DATA
