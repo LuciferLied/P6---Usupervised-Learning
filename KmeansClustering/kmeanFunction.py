@@ -11,6 +11,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.cluster import MiniBatchKMeans
 import time
 import csv
+import os
 
 def downloadData(dataset):
     # Download training data from open datasets.
@@ -162,10 +163,17 @@ def statsPrint(accuracy_list, time_elapsed_list, inertia_list, homogeneity_list,
     print("LONGEST TIME: {:>12.3f}\n\n".format(max(time_elapsed_list)))
     print("Number of clusters: {:>3}".format(total_clusters))
 
-    
 def saveToCSV(accuracy_list, time_elapsed_list):
-    with open('KmeansClustering/dataanalysis/CSVstats.csv', 'w', newline='') as stats_CSV:
-        writer = csv.writer(stats_CSV)
-        writer.writerow(time_elapsed_list)
-        writer.writerow(accuracy_list)
 
+    rootdir = os.getcwd()
+
+    for subdir, dirs, files in os.walk(rootdir):
+        
+        filepath = subdir + os.sep
+
+        if filepath.__contains__("dataanalysis"):
+            filepath = filepath + "CSVstats.csv"
+            with open(filepath, 'w', newline='') as CSVstats:
+                writer = csv.writer(CSVstats)
+                writer.writerow(time_elapsed_list)
+                writer.writerow(accuracy_list)
