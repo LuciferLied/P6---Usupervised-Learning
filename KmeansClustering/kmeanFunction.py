@@ -56,7 +56,6 @@ def purifyData(train_data, test_data):
     #test_target_numpyArray = np.array(test_target)
 
     train_numpyArray=np.array(train_numpyList)
-    print(train_numpyArray)
     train_numpyArray= train_numpyArray.squeeze()
 
 
