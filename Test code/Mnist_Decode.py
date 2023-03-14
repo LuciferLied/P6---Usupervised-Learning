@@ -72,6 +72,7 @@ test_set = datasets.MNIST(
     download=True,
     transform=ToTensor(),
 )
+
 test_loader = data.DataLoader(test_set, batch_size=16, shuffle=False)
 
 
@@ -81,7 +82,7 @@ with torch.no_grad():
         inputs = data[0].view(-1, 28*28)
         show_images(inputs)
         plt.savefig('pics/Original.png')
-
+        
         code, outputs = model(inputs)
         show_images(outputs)
         plt.savefig('pics/Reconstruction.png')

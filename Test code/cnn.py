@@ -33,6 +33,7 @@ class Layers(nn.Module):
 layers = Layers()
 out = layers(torch.rand((16,1,28,28)))
 out.shape
+
 def Dataset(batch_size):
     transform = transforms.Compose([
                 transforms.ToTensor(),
@@ -41,7 +42,7 @@ def Dataset(batch_size):
 
     trainset = torchvision.datasets.MNIST(root='./data', train=True,
                                             download=True, transform=transform)
-        
+    
     # Split dataset into train and validation set    
     trainset, valset = torch.utils.data.random_split(trainset, [57500, 2500])
 
@@ -85,8 +86,8 @@ class Model:
         for batch in dataset:
             inputs = batch[0].to(self.device)
             targets = batch[1].to(self.device)
-            self.opt.zero_grad() 
-           
+            self.opt.zero_grad()
+            
             outputs = self.model(inputs)
 
             loss = self.loss(outputs, targets)

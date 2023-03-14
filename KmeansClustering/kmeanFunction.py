@@ -76,8 +76,8 @@ def generateClusters(train_reshaped, total_clusters):
     kmeans=MiniBatchKMeans(n_clusters = total_clusters)
     kmeans.fit(train_reshaped)
     kmeansLabels = kmeans.labels_
-    #print("\nKmeans Labels: ")
-    #print(kmeans.labels_[:20])        
+    # print(kmeans.labels_[:20])
+    print("Cluster centers: ", kmeans.cluster_centers_)
     return kmeansLabels, kmeans
 
 #Associates each cluster with most probable label
