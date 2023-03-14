@@ -7,7 +7,7 @@ from torchvision.transforms import ToTensor
 # Settings
 epochs = 10
 batch_size = 128
-lr = 0.008
+lr = 0.01
 
 # DataLoader
 train_set = datasets.MNIST(
@@ -18,7 +18,6 @@ train_set = datasets.MNIST(
 )
 
 train_loader = data.DataLoader(train_set, batch_size=batch_size, shuffle=True)
-
 
 # Model structure
 class AutoEncoder(nn.Module):
