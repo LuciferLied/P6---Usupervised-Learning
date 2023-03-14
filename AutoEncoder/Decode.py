@@ -58,12 +58,10 @@ class AutoEncoder(nn.Module):
 
         return codes, decoded
 
-
 # Load model
 model = torch.load('autoencoder.pth')
 model.eval()
 print(model)
-
 
 # DataLoader
 test_set = datasets.MNIST(
@@ -74,7 +72,6 @@ test_set = datasets.MNIST(
 )
 
 test_loader = data.DataLoader(test_set, batch_size=16, shuffle=False)
-
 
 # Test
 with torch.no_grad():
