@@ -1,3 +1,4 @@
+# https://clay-atlas.com/us/blog/2021/08/03/machine-learning-en-introduction-autoencoder-with-pytorch/
 import torch
 import torch.nn as nn
 import torch.utils.data as data
