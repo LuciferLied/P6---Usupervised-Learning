@@ -35,10 +35,13 @@ from sklearn.cluster import KMeans
 x = numpy.random.randint(100,size=(100))
 y = numpy.random.randint(100,size=(100))
 
+print('x: ', x.shape)
+print('y: ', type(y))
+
 data = list(zip(x, y))
 
-clusters = KMeans(n_clusters=2,n_init='auto')
+clusters = KMeans(n_clusters=5,n_init='auto')
 clusters.fit(data)
 
-plt.scatter(x, y)
+plt.scatter(x, y, c=clusters.labels_, cmap='rainbow')
 plt.savefig('test.png')
