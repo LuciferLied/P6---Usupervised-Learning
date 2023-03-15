@@ -15,5 +15,7 @@ def main():
     func.statsPrint(accuracy_list, time_elapsed_list, inertia_list, homogeneity_list, total_clusters)
     func.saveToCSV(accuracy_list, time_elapsed_list)
     print("End program\n")
-main()
+
+if __name__ == "__main__":
+    main()
 

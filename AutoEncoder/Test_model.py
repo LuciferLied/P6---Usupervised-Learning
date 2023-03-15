@@ -15,7 +15,6 @@ plt.rcParams['figure.figsize'] = (10.0, 8.0)
 plt.rcParams['image.interpolation'] = 'nearest'
 plt.rcParams['image.cmap'] = 'gray'
 
-
 # Show images
 def show_images(images):
     sqrtn = int(np.ceil(np.sqrt(images.shape[0])))
@@ -104,15 +103,21 @@ with torch.no_grad():
         
         # random_state=0 for same seed in kmeans
         #clusters = MiniBatchKMeans(n_clusters=20, n_init='auto',).fit(data)
-        clusters = KMeans(n_clusters=20, n_init='auto',).fit(data)
+        clusters = KMeans(n_clusters=10, n_init='auto',).fit(data)
         
 
 
 
 #Associates each cluster with most probable label
+def retrieveInfo(kmeansLabels, train_target_numpyArray):
+    reference_labels={}
+    for i in range(len(np.unique(kmeansLabels))):
+        #If cluster label = i, assign 1. Otherwise assign 0.
+        index = np.where(kmeansLabels == i,1,0)
+        num = np.bincount(train_target_numpyArray[index==1]).argmax()
+        reference_labels[i]=num
+    return reference_labels
 
-
-<<<<<<< HEAD
 def assignPredictions(kmeansLabels, reference_labels):
     #Initializes the array - ignore random.rand
     predicted_num = np.random.rand(len(kmeansLabels))
@@ -131,13 +136,6 @@ def computeAccuracy(predicted_num, train_target_numpyArray):
     return accuracy
 
 accuracy = computeAccuracy(predicted_num, labels)
-=======
-labels = test_set.targets
-
-ref_labels = Func.retrieveInfo(clusters.labels_, labels)
-predicted_num = Func.assignPredictions(clusters.labels_, ref_labels)
-accuracy = Func.computeAccuracy(predicted_num, labels)
->>>>>>> 24e3fe32835413375be503d6f02d277f8f5bd7c3
 
 print('Ref_labels',ref_labels)
 print('labels',labels[0:20])
