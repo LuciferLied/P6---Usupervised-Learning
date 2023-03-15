@@ -6,8 +6,11 @@ from torchvision import datasets
 from torchvision.transforms import ToTensor
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.cluster import MiniBatchKMeans
 from sklearn.cluster import KMeans
 from sklearn.metrics import accuracy_score
+from matplotlib.patches import Rectangle, Patch  # for creating a legend
+from matplotlib.lines import Line2D
 
 # Settings
 plt.rcParams['figure.figsize'] = (10.0, 8.0)
@@ -68,6 +71,7 @@ class AutoEncoder(nn.Module):
         
         return codes, decoded
 
+
 # Load model
 model = torch.load('autoencoder.pth')
 model.eval()
@@ -81,6 +85,8 @@ test_set = datasets.MNIST(
 )
 
 test_loader = data.DataLoader(test_set, batch_size=10000, shuffle=False)
+labels = test_set.targets
+unique_labels = len(np.unique(labels))
 
 
 # Test
@@ -98,10 +104,10 @@ with torch.no_grad():
         
         data = list(zip(x, y))
         
-        clusters = KMeans(n_clusters=10, n_init='auto').fit(data)
+        # random_state=0 for same seed in kmeans
+        #clusters = MiniBatchKMeans(n_clusters=20, n_init='auto',).fit(data)
+        clusters = KMeans(n_clusters=20, n_init='auto',).fit(data)
         
-        plt.scatter(x, y, c=clusters.labels_, cmap='rainbow')
-        plt.savefig('Pics/clusters.png')
 
 
 
@@ -114,8 +120,6 @@ def retrieveInfo(kmeansLabels, train_target_numpyArray):
         num = np.bincount(train_target_numpyArray[index==1]).argmax()
         reference_labels[i]=num
     return reference_labels
-
-labels = test_set.targets
 
 def assignPredictions(kmeansLabels, reference_labels):
     #Initializes the array - ignore random.rand
@@ -140,3 +144,21 @@ print('Ref_labels',ref_labels)
 print('labels',labels[0:20])
 print('predicted_num',predicted_num[0:20])
 print('Accuracy',accuracy)
+
+def plot(ref_labels):
+    
+    plt.xlabel("x")
+    plt.ylabel("y")
+    plt.scatter(x, y, c=clusters.labels_, cmap='rainbow')
+    cluster, numbers = zip(*ref_labels.items())
+    plt.colorbar(ticks=numbers)
+    plt.savefig('Pics/clusters.png')
+    
+    
+    # Plotting  the clusters
+    # plt.scatter(cluster, numbers)
+    # plt.xlabel("Cluster")
+    # plt.ylabel("Number")
+    # plt.savefig('Pics/numbers.png')
+
+plot(ref_labels)

@@ -166,3 +166,4 @@ AutoEncoder/data/MNIST/raw/train-images-idx3-ubyte
 AutoEncoder/mnist/MNIST/raw/train-images-idx3-ubyte
 AutoEncoder/mnist/MNIST/raw/train-labels-idx1-ubyte
 AutoEncoder/mnist/MNIST/raw/t10k-labels-idx1-ubyte
+KmeansClustering/dataanalysis/CSVstats.csv
