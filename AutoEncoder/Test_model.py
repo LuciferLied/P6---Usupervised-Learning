@@ -8,6 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.metrics import accuracy_score
+from ..KmeansClustering import kmeanFunction as Func
+
 
 # Settings
 plt.rcParams['figure.figsize'] = (10.0, 8.0)
@@ -106,35 +108,13 @@ with torch.no_grad():
 
 
 #Associates each cluster with most probable label
-def retrieveInfo(kmeansLabels, train_target_numpyArray):
-    reference_labels={}
-    for i in range(len(np.unique(kmeansLabels))):
-        #If cluster label = i, assign 1. Otherwise assign 0.
-        index = np.where(kmeansLabels == i,1,0)
-        num = np.bincount(train_target_numpyArray[index==1]).argmax()
-        reference_labels[i]=num
-    return reference_labels
+
 
 labels = test_set.targets
 
-def assignPredictions(kmeansLabels, reference_labels):
-    #Initializes the array - ignore random.rand
-    predicted_num = np.random.rand(len(kmeansLabels))
-
-    #For picture 0, find corresponding kmeans_label. Then find the actual number that kmeans.label points to.
-    for i in range(len(kmeansLabels)):
-        predicted_num[i]=reference_labels[kmeansLabels[i]]
-
-    return predicted_num
-
-ref_labels = retrieveInfo(clusters.labels_, labels)
-predicted_num = assignPredictions(clusters.labels_, ref_labels)
-
-def computeAccuracy(predicted_num, train_target_numpyArray):
-    accuracy = accuracy_score(predicted_num, train_target_numpyArray)
-    return accuracy
-
-accuracy = computeAccuracy(predicted_num, labels)
+ref_labels = Func.retrieveInfo(clusters.labels_, labels)
+predicted_num = Func.assignPredictions(clusters.labels_, ref_labels)
+accuracy = Func.computeAccuracy(predicted_num, labels)
 
 print('Ref_labels',ref_labels)
 print('labels',labels[0:20])
