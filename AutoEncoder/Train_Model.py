@@ -16,6 +16,7 @@ else:
     print('Using CPU')
     device = torch.device('cpu')
 
+
 # Settings
 epochs = 5
 batch_size = 256
