@@ -11,11 +11,12 @@ start = time.time()
 if torch.cuda.is_available():
     print('Using GPU')
     dtype = torch.float32
-    device = torch.device('cuda:0')
+    device = torch.device('cuda')
 else:
     print('Using CPU')
     device = torch.device('cpu')
 
+device = torch.device('cpu')
 
 # Settings
 epochs = 5
