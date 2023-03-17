@@ -15,6 +15,7 @@ if torch.cuda.is_available():
 else:
     print('Using CPU')
     device = torch.device('cpu')
+device = torch.device('cpu')
 
 
 # Settings

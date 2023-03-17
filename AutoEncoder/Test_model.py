@@ -1,7 +1,3 @@
-# coding: utf-8
-import sys
-sys.path.insert(1, '..//P6---Usupervised-Learning//KmeansClustering//')
-import kmeanFunction
 import torch
 import torch.nn as nn
 import torch.utils.data as data
@@ -13,16 +9,21 @@ from sklearn.cluster import MiniBatchKMeans
 from sklearn.cluster import KMeans
 from sklearn.metrics import accuracy_score
 
-#from setuptools import setup, find_packages
-#setup(name = "kmeansClustering", packages = find_packages())
-
-#bleh
 
 # Settings
 plt.rcParams['figure.figsize'] = (10.0, 8.0)
 plt.rcParams['image.interpolation'] = 'nearest'
 plt.rcParams['image.cmap'] = 'gray'
 
+# set device
+if torch.cuda.is_available():
+    print('Using GPU')
+    dtype = torch.float32
+    device = torch.device('cuda:0')
+else:
+    print('Using CPU')
+    device = torch.device('cpu')
+device = torch.device('cpu')
 
 # Show images
 def show_images(images):
@@ -31,15 +32,6 @@ def show_images(images):
     for index, image in enumerate(images):
         plt.subplot(sqrtn, sqrtn, index+1)
         plt.imshow(image.reshape(28, 28))
-        plt.axis('off')
-
-# Show images
-def show_images2(images):
-    sqrtn = int(np.ceil(np.sqrt(images.shape[0])))
-
-    for index, image in enumerate(images):
-        plt.subplot(sqrtn, sqrtn, index+1)
-        plt.imshow(image.reshape(64, 64))
         plt.axis('off')
 
 
@@ -80,6 +72,7 @@ class AutoEncoder(nn.Module):
 
 # Load model
 model = torch.load('autoencoder.pth')
+# model.to(device)
 model.eval()
 
 # DataLoader
@@ -113,46 +106,42 @@ with torch.no_grad():
         # random_state=0 for same seed in kmeans
         #clusters = MiniBatchKMeans(n_clusters=20, n_init='auto',).fit(data)
         clusters = KMeans(n_clusters=10, n_init='auto',).fit(data)
-        
-        plt.scatter(x, y, c=clusters.labels_, cmap='rainbow')
-        plt.savefig('Pics/clusters.png')
-
 
 
 #Associates each cluster with most probable label
-# def retrieveInfo(kmeansLabels, train_target_numpyArray):
-#     reference_labels={}
-#     for i in range(len(np.unique(kmeansLabels))):
-#         #If cluster label = i, assign 1. Otherwise assign 0.
-#         index = np.where(kmeansLabels == i,1,0)
-#         num = np.bincount(train_target_numpyArray[index==1]).argmax()
-#         reference_labels[i]=num
-#     return reference_labels
+def retrieveInfo(kmeansLabels, train_target_numpyArray):
+    reference_labels={}
+    for i in range(len(np.unique(kmeansLabels))):
+        #If cluster label = i, assign 1. Otherwise assign 0.
+        index = np.where(kmeansLabels == i,1,0)
+        num = np.bincount(train_target_numpyArray[index==1]).argmax()
+        reference_labels[i]=num
+    return reference_labels
 
 labels = test_set.targets
 
-# def assignPredictions(kmeansLabels, reference_labels):
-#     #Initializes the array - ignore random.rand
-#     predicted_num = np.random.rand(len(kmeansLabels))
+def assignPredictions(kmeansLabels, reference_labels):
+    #Initializes the array - ignore random.rand
+    num_predicted = np.random.rand(len(kmeansLabels))
 
-#     #For picture 0, find corresponding kmeans_label. Then find the actual number that kmeans.label points to.
-#     for i in range(len(kmeansLabels)):
-#         predicted_num[i]=reference_labels[kmeansLabels[i]]
+    #For picture 0, find corresponding kmeans_label. Then find the actual number that kmeans.label points to.
+    for i in range(len(kmeansLabels)):
+        num_predicted[i]=reference_labels[kmeansLabels[i]]
 
-#     return predicted_num
+    return num_predicted
 
-ref_labels = kmeanFunction.retrieveInfo(clusters.labels_, labels)
-predicted_num = kmeanFunction.assignPredictions(clusters.labels_, ref_labels)
+ref_labels = retrieveInfo(clusters.labels_, labels)
+num_predicted = assignPredictions(clusters.labels_, ref_labels)
 
-# def computeAccuracy(predicted_num, train_target_numpyArray):
-#     accuracy = accuracy_score(predicted_num, train_target_numpyArray)
-#     return accuracy
+def computeAccuracy(num_predicted, train_target_numpyArray):
+    accuracy = accuracy_score(num_predicted, train_target_numpyArray)
+    return accuracy
 
-accuracy = kmeanFunction.computeAccuracy(predicted_num, labels)
+accuracy = computeAccuracy(num_predicted, labels)
 
 print('Ref_labels',ref_labels)
 print('labels',labels[0:20])
-print('predicted_num',predicted_num[0:20])
+print('num_predicted',num_predicted[0:20])
 print('Accuracy',accuracy)
 
 def plot(ref_labels):
@@ -171,4 +160,4 @@ def plot(ref_labels):
     # plt.ylabel("Number")
     # plt.savefig('Pics/numbers.png')
 
-plot(ref_labels)
+# plot(ref_labels)
