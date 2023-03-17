@@ -74,7 +74,7 @@ class AutoEncoder(nn.Module):
 
 # Load model
 model = torch.load('autoencoder.pth')
-model.to('cpu')
+model.to('device')
 model.eval()
 
 # DataLoader
