@@ -24,7 +24,6 @@ if torch.cuda.is_available():
 else:
     print('Using CPU')
     device = torch.device('cpu')
-device = torch.device('cpu')
 
 # Show images
 def show_images(images):
@@ -70,10 +69,9 @@ class AutoEncoder(nn.Module):
         
         return codes, decoded
 
-
 # Load model
 model = torch.load('autoencoder.pth')
-# model.to(device)
+model.to(device)
 model.eval()
 
 # DataLoader
@@ -86,27 +84,19 @@ test_set = datasets.MNIST(
 
 test_loader = data.DataLoader(test_set, batch_size=10000, shuffle=False)
 
-
-
-
 # Test
 with torch.no_grad():
     for x, data in enumerate(test_loader):
         inputs = data[0].view(-1, 28*28)
-
-        plt.savefig('Pics/Original.png')
-
+        
+        inputs = inputs.to(device)
         code, outputs = model(inputs)
-        
-        x,y = zip(*code)
-        x = np.array(x)
-        y = np.array(y)
-        
-        data = list(zip(x, y))
-        
+
+        # Make code and outputs numpy array
+        code = code.to('cpu')
         # random_state=0 for same seed in kmeans
         #clusters = MiniBatchKMeans(n_clusters=20, n_init='auto',).fit(data)
-        clusters = KMeans(n_clusters=10, n_init='auto',).fit(data)
+        clusters = KMeans(n_clusters=10, n_init='auto',).fit(code)
 
 
 
