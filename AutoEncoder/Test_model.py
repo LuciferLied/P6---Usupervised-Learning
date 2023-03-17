@@ -85,8 +85,8 @@ test_set = datasets.MNIST(
 )
 
 test_loader = data.DataLoader(test_set, batch_size=10000, shuffle=False)
-labels = test_set.targets
-unique_labels = len(np.unique(labels))
+
+
 
 
 # Test
@@ -111,7 +111,7 @@ with torch.no_grad():
 
 
 labels = test_set.targets
-
+unique_labels = len(np.unique(labels))
 ref_labels = util.retrieveInfo(clusters.labels_, labels)
 num_predicted = util.assignPredictions(clusters.labels_, ref_labels)
 
