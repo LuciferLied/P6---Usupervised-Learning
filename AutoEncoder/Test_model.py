@@ -16,6 +16,7 @@ from sklearn.metrics import accuracy_score
 #from setuptools import setup, find_packages
 #setup(name = "kmeansClustering", packages = find_packages())
 
+#bleh
 
 # Settings
 plt.rcParams['figure.figsize'] = (10.0, 8.0)
