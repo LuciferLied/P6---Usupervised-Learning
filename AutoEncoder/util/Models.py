@@ -14,7 +14,7 @@ class AutoEncoder(nn.Module):
             nn.Tanh(),
             nn.Linear(64, 16),
             nn.Tanh(),
-            nn.Linear(16, 2),
+            nn.Linear(16, 2)
         )
         
         # Decoder
@@ -34,11 +34,36 @@ class AutoEncoder(nn.Module):
         decoded = self.decoder(codes)
         
         return codes, decoded
+
+class Auto_CNN(nn.Module):
+    def __init__(self):
+        super(Auto_CNN, self).__init__()
+
+        # Encoder
+        self.encoder = nn.Sequential(
+            nn.Linear(784, 128),
+            nn.Tanh(),
+            nn.Linear(128, 64),
+        )
+        
+        # Decoder
+        self.decoder = nn.Sequential(
+            nn.Linear(64, 128),
+            nn.Tanh(),
+            nn.Linear(128, 784),
+            nn.Sigmoid()
+        )
+
+    def forward(self, inputs):
+        codes = self.encoder(inputs)
+        decoded = self.decoder(codes)
+        
+        return codes, decoded
     
 # Model structure
 class CNN_AutoEncoder(nn.Module):
     def __init__(self):
-        super(AutoEncoder, self).__init__()
+        super(CNN_AutoEncoder, self).__init__()
         
         # Encoder
         self.conv1 = nn.Conv2d(1, 6, 3)
@@ -56,7 +81,7 @@ class CNN_AutoEncoder(nn.Module):
         self.t_conv2 = nn.ConvTranspose2d(16, 1, 10)
 
     def forward(self, x):
-        
+            
         # Encoder
         x = self.pool(torch.relu(self.conv1(x)))
         x = self.pool(torch.relu(self.conv2(x)))

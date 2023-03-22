@@ -5,7 +5,7 @@ import torch.utils.data as data
 from torchvision import datasets
 from torchvision.transforms import ToTensor
 import time 
-from util import Autoenc_model as Model
+from util import Models as Model
 
 start = time.time()
 # set device
