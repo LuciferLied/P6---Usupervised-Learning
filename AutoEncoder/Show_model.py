@@ -21,7 +21,7 @@ class AutoEncoder(nn.Module):
             nn.Tanh(),
             nn.Linear(16, 2),
         )
-
+                
         # Decoder
         self.decoder = nn.Sequential(
             nn.Linear(2, 16),
@@ -37,8 +37,9 @@ class AutoEncoder(nn.Module):
     def forward(self, inputs):
         codes = self.encoder(inputs)
         decoded = self.decoder(codes)
-
-        return codes, decoded
+        
+        return codes, decoded   
+        
 
 
 # Load model

@@ -1,6 +1,7 @@
 import torch
 from util import utils as util
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.utils.data as data
 from torchvision import datasets
 from torchvision.transforms import ToTensor
@@ -35,40 +36,6 @@ def show_images(images):
         plt.axis('off')
 
 
-# Model structure
-class AutoEncoder(nn.Module):
-    def __init__(self):
-        super(AutoEncoder, self).__init__()
-
-        # Encoder
-        self.encoder = nn.Sequential(
-            nn.Linear(784, 128),
-            nn.Tanh(),
-            nn.Linear(128, 64),
-            nn.Tanh(),
-            nn.Linear(64, 16),
-            nn.Tanh(),
-            nn.Linear(16, 2),
-        )
-
-        # Decoder
-        self.decoder = nn.Sequential(
-            nn.Linear(2, 16),
-            nn.Tanh(),
-            nn.Linear(16, 64),
-            nn.Tanh(),
-            nn.Linear(64, 128),
-            nn.Tanh(),
-            nn.Linear(128, 784),
-            nn.Sigmoid()
-        )
-
-    def forward(self, inputs):
-        codes = self.encoder(inputs)
-        decoded = self.decoder(codes)
-        
-        return codes, decoded
-
 # Load model
 model = torch.load('autoencoder.pth')
 model.to(device)
@@ -85,33 +52,45 @@ test_set = datasets.MNIST(
 test_loader = data.DataLoader(test_set, batch_size=10000, shuffle=False)
 
 # Test
-with torch.no_grad():
-    for x, data in enumerate(test_loader):
-        inputs = data[0].view(-1, 28*28)
-        
-        inputs = inputs.to(device)
-        code, outputs = model(inputs)
+def test():
+    with torch.no_grad():
+        for data in test_loader:
+            inputs = data[0].view(-1, 28*28)
+            
+            print(inputs.shape)
+            # show_images(inputs)
+            # plt.savefig('pics/Original.png')
+            
+            inputs = inputs.to(device)
+            code, outputs = model(inputs)
+            
+            # show_images(outputs)
+            # plt.savefig('pics/Reconstruction.png')
+            # Make code and outputs numpy array
+            
+            code = code.to('cpu')
+            # random_state=0 for same seed in kmeans
+            #clusters = MiniBatchKMeans(n_clusters=20, n_init='auto',).fit(data)
+            clusters = KMeans(n_clusters=10, n_init='auto',).fit(code)
 
-        # Make code and outputs numpy array
-        code = code.to('cpu')
-        # random_state=0 for same seed in kmeans
-        #clusters = MiniBatchKMeans(n_clusters=20, n_init='auto',).fit(data)
-        clusters = KMeans(n_clusters=10, n_init='auto',).fit(code)
+            
+    labels = test_set.targets
+    unique_labels = len(np.unique(labels))
+    ref_labels = util.retrieveInfo(clusters.labels_, labels)
+    num_predicted = util.assignPredictions(clusters.labels_, ref_labels)
+
+    accuracy = util.computeAccuracy(num_predicted, labels)
+
+    print('Ref_labels',ref_labels)
+    print('labels',labels[0:20])
+    print('num_predicted',num_predicted[0:20])
+    print('Accuracy',accuracy)
+    
+    plt.savefig('Pics/clusters.png')
 
 
+test()
 
-labels = test_set.targets
-unique_labels = len(np.unique(labels))
-ref_labels = util.retrieveInfo(clusters.labels_, labels)
-num_predicted = util.assignPredictions(clusters.labels_, ref_labels)
-
-
-accuracy = util.computeAccuracy(num_predicted, labels)
-
-print('Ref_labels',ref_labels)
-print('labels',labels[0:20])
-print('num_predicted',num_predicted[0:20])
-print('Accuracy',accuracy)
 
 def plot(ref_labels):
     
