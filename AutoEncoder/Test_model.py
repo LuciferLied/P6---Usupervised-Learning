@@ -35,7 +35,6 @@ def show_images(images):
         plt.imshow(image.reshape(28, 28))
         plt.axis('off')
 
-
 # Load model
 model = torch.load('autoencoder.pth')
 model.to(device)
@@ -54,7 +53,7 @@ test_loader = data.DataLoader(test_set, batch_size=10000, shuffle=False)
 # Test
 def test():
     with torch.no_grad():
-        for data in test_loader:
+        for x, data in enumerate(test_loader):
             inputs = data[0].view(-1, 28*28)
             
             print(inputs.shape)
@@ -71,7 +70,7 @@ def test():
             code = code.to('cpu')
             # random_state=0 for same seed in kmeans
             #clusters = MiniBatchKMeans(n_clusters=20, n_init='auto',).fit(data)
-            clusters = KMeans(n_clusters=10, n_init='auto',).fit(code)
+            clusters = KMeans(n_clusters=50, n_init='auto',).fit(code)
 
             
     labels = test_set.targets

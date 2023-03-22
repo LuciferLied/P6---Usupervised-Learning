@@ -21,7 +21,7 @@ else:
 # Settings
 epochs = 5
 batch_size = 128
-lr = 0.001
+lr = 0.01
 
 # DataLoader
 train_set = datasets.MNIST(
@@ -44,7 +44,7 @@ loss_function = nn.MSELoss()
 # Train
 for epoch in range(epochs):
     for data, labels in train_loader:
-        inputs = data[0].view(-1, 784)
+        inputs = data.view(-1, 784)
         inputs = inputs.to(device)
         
         # Forward

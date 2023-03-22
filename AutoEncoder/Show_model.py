@@ -21,7 +21,7 @@ class AutoEncoder(nn.Module):
             nn.Tanh(),
             nn.Linear(16, 2),
         )
-                
+
         # Decoder
         self.decoder = nn.Sequential(
             nn.Linear(2, 16),
