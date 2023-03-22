@@ -6,16 +6,10 @@ import torch.utils.data as data
 from torchvision import datasets
 from torchvision.transforms import ToTensor
 import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.cluster import MiniBatchKMeans
 from sklearn.cluster import KMeans
 from sklearn.metrics import accuracy_score
 
-
-# Settings
-plt.rcParams['figure.figsize'] = (10.0, 8.0)
-plt.rcParams['image.interpolation'] = 'nearest'
-plt.rcParams['image.cmap'] = 'gray'
 
 # set device
 if torch.cuda.is_available():
@@ -25,15 +19,6 @@ if torch.cuda.is_available():
 else:
     print('Using CPU')
     device = torch.device('cpu')
-
-# Show images
-def show_images(images):
-    sqrtn = int(np.ceil(np.sqrt(images.shape[0])))
-
-    for index, image in enumerate(images):
-        plt.subplot(sqrtn, sqrtn, index+1)
-        plt.imshow(image.reshape(28, 28))
-        plt.axis('off')
 
 # Load model
 model = torch.load('autoencoder.pth')
@@ -54,58 +39,33 @@ test_loader = data.DataLoader(test_set, batch_size=10000, shuffle=False)
 def test():
     with torch.no_grad():
         for data, labels in test_loader:
-            inputs = data.view(-1, 28*28)
-            inputs = torch.flatten(inputs, start_dim=1)
             
-            # show_images(inputs)
-            # plt.savefig('pics/Original.png')
-            
+            inputs = data.view(-1, 1, 784)
             inputs = inputs.to(device)
-            code, outputs = model(inputs)
             
-            # show_images(outputs)
-            # plt.savefig('pics/Reconstruction.png')
+            # Forward
+            code, outputs = model(inputs)
             
             code = code.to('cpu')
             print(code.shape)
-            code = torch.flatten(code, start_dim=1)
+            
+            code = torch.flatten(code, 1)
+            
             # random_state=0 for same seed in kmeans
             #clusters = MiniBatchKMeans(n_clusters=20, n_init='auto',).fit(data)
-            clusters = KMeans(n_clusters=50, n_init='auto',).fit(code)
+            clusters = KMeans(n_clusters=25, n_init='auto',).fit(code)
+        print(code.shape)
 
-            
     labels = test_set.targets
-    unique_labels = len(np.unique(labels))
     ref_labels = util.retrieveInfo(clusters.labels_, labels)
     num_predicted = util.assignPredictions(clusters.labels_, ref_labels)
 
     accuracy = util.computeAccuracy(num_predicted, labels)
 
-    print('Ref_labels',ref_labels)
-    print('labels',labels[0:20])
-    print('num_predicted',num_predicted[0:20])
+    # print('Ref_labels',ref_labels)
+    # print('labels',labels[0:20])
+    # print('num_predicted',num_predicted[0:20])
+    print(model)
     print('Accuracy',accuracy)
-    
-    plt.savefig('Pics/clusters.png')
-
 
 test()
-
-
-def plot(ref_labels):
-    
-    plt.xlabel("x")
-    plt.ylabel("y")
-    plt.scatter(x, y, c=clusters.labels_, cmap='rainbow')
-    cluster, numbers = zip(*ref_labels.items())
-    plt.colorbar(ticks=numbers)
-    plt.savefig('Pics/clusters.png')
-    
-    
-    # Plotting  the clusters
-    # plt.scatter(cluster, numbers)
-    # plt.xlabel("Cluster")
-    # plt.ylabel("Number")
-    # plt.savefig('Pics/numbers.png')
-
-# plot(ref_labels)
