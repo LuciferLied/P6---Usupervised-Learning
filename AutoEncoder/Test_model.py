@@ -53,10 +53,10 @@ test_loader = data.DataLoader(test_set, batch_size=10000, shuffle=False)
 # Test
 def test():
     with torch.no_grad():
-        for x, data in enumerate(test_loader):
-            inputs = data[0].view(-1, 28*28)
+        for data, labels in test_loader:
+            inputs = data.view(-1, 28*28)
+            inputs = torch.flatten(inputs, start_dim=1)
             
-            print(inputs.shape)
             # show_images(inputs)
             # plt.savefig('pics/Original.png')
             
@@ -65,9 +65,10 @@ def test():
             
             # show_images(outputs)
             # plt.savefig('pics/Reconstruction.png')
-            # Make code and outputs numpy array
             
             code = code.to('cpu')
+            print(code.shape)
+            code = torch.flatten(code, start_dim=1)
             # random_state=0 for same seed in kmeans
             #clusters = MiniBatchKMeans(n_clusters=20, n_init='auto',).fit(data)
             clusters = KMeans(n_clusters=50, n_init='auto',).fit(code)

@@ -7,6 +7,7 @@ from torchvision.transforms import ToTensor
 import time 
 from util import Models as Model
 
+
 start = time.time()
 # set device
 if torch.cuda.is_available():
@@ -21,7 +22,7 @@ else:
 # Settings
 epochs = 5
 batch_size = 128
-lr = 0.01
+lr = 0.001
 
 # DataLoader
 train_set = datasets.MNIST(
@@ -34,7 +35,7 @@ train_set = datasets.MNIST(
 train_loader = data.DataLoader(train_set, batch_size=batch_size, shuffle=True)
 
 # Optimizer and loss function
-model = Model.AutoEncoder()
+model = Model.Smol_AutoEncoder()
 print(model)
 
 model.to(device)
@@ -44,7 +45,8 @@ loss_function = nn.MSELoss()
 # Train
 for epoch in range(epochs):
     for data, labels in train_loader:
-        inputs = data.view(-1, 784)
+
+        inputs = data.view(-1, 1, 784)
         inputs = inputs.to(device)
         
         # Forward
