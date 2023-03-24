@@ -1,14 +1,11 @@
 import torch
 from util import utils as util
-import torch.nn as nn
-import torch.nn.functional as F
 import torch.utils.data as data
 from torchvision import datasets
 from torchvision.transforms import ToTensor
 import numpy as np
 from sklearn.cluster import MiniBatchKMeans
 from sklearn.cluster import KMeans
-from sklearn.metrics import accuracy_score
 
 
 # set device
@@ -50,7 +47,7 @@ def test():
             print(code.shape)
             
             code = torch.flatten(code, 1)
-            
+
             # random_state=0 for same seed in kmeans
             #clusters = MiniBatchKMeans(n_clusters=20, n_init='auto',).fit(data)
             clusters = KMeans(n_clusters=25, n_init='auto',).fit(code)
@@ -66,6 +63,11 @@ def test():
     # print('labels',labels[0:20])
     # print('num_predicted',num_predicted[0:20])
     print(model)
-    print('Accuracy',accuracy)
+    
+    # Round accuracy to 2 decimals
+    accuracy = round(accuracy * 100,2)
+    
+    
+    print('Accuracy',accuracy, '%')
 
 test()
