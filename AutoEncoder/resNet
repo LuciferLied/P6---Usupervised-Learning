@@ -1,0 +1,30 @@
+import torch
+import torch.nn as nn
+import torch.utils.data as data
+from torchvision import datasets
+from torchvision.transforms import ToTensor
+import time 
+from util import Models as Model
+
+
+class ResNet(nn.Module):
+    def __init__(self):
+        super(ResNet, self).__init__()
+
+        model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
+        
+        # Encoder
+        
+        # Decoder
+        model.eval()
+
+    def forward(self, x):
+        
+        output = model(input)
+        return output
+        # Encoder
+        
+        # Decoder
+        
+        
+        return

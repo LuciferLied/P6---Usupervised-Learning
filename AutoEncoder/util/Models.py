@@ -143,3 +143,4 @@ class CNN_AutoEncoder(nn.Module):
         decoded = x
         
         return codes, decoded
+    
