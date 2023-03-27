@@ -36,9 +36,10 @@ test_loader = data.DataLoader(test_set, batch_size=10000, shuffle=False)
 def test():
     with torch.no_grad():
         for data, labels in test_loader:
-            
+            print(test_loader.shape)
             inputs = data.view(-1, 1, 784)
             inputs = inputs.to(device)
+            print("HALLO:   ", data.shape, "  hallo slut")
             
             # Forward
             code, outputs = model(inputs)

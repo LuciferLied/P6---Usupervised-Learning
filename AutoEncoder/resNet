@@ -5,13 +5,25 @@ from torchvision import datasets
 from torchvision.transforms import ToTensor
 import time 
 from util import Models as Model
+import torch
 
+
+# DataLoader
+train_set = datasets.CIFAR10(
+    root="data",
+    train=True,
+    download=True,
+    transform=ToTensor(),
+)
+
+train_loader = data.DataLoader(train_set, batch_size=10000, shuffle=False)
 
 class ResNet(nn.Module):
     def __init__(self):
         super(ResNet, self).__init__()
 
         model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
+        model.eval()
         
         # Encoder
         
@@ -20,7 +32,7 @@ class ResNet(nn.Module):
 
     def forward(self, x):
         
-        output = model(input)
+        output = self.model(input)
         return output
         # Encoder
         
@@ -28,3 +40,9 @@ class ResNet(nn.Module):
         
         
         return
+
+print("TEST:   ", train_set.data.shape)
+ResNet(train_set.data)
+with torch.no_grad():
+        for data, labels in train_loader:
+            print("HALLO:   ", data.shape, "  hallo slut")
