@@ -41,8 +41,13 @@ class ResNet(nn.Module):
         
         return
 
-print("TEST:   ", train_set.data.shape)
-ResNet(train_set.data)
+print("Data shape:   ", train_set.data.shape)
+print("Data type:   ", type(train_set.data))
+
+
+output = ResNet(train_set.data[0])
+#ResNet.forward(train_set.data[0])
+
 with torch.no_grad():
         for data, labels in train_loader:
             print("HALLO:   ", data.shape, "  hallo slut")
