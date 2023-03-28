@@ -34,6 +34,7 @@ train_set = datasets.MNIST(
 
 train_loader = data.DataLoader(train_set, batch_size=batch_size, shuffle=True)
 
+
 # Optimizer and loss function
 model = Model.Auto_CNN()
 print(model)
@@ -46,23 +47,22 @@ loss_function = nn.MSELoss()
 for epoch in range(epochs):
     for data, labels in train_loader:
 
-        inputs = data.view(-1, 1, 784)
-        inputs = inputs.to(device)
-        
-        # Forward
-        codes, decoded = model(inputs)
+        data = data.to(device)
+        data = torch.flatten(data, 1)
 
+        # Forward
+        codes, decoded = model(data)
+        decoded = torch.flatten(decoded, 1)
+        
         # Backward
         optimizer.zero_grad()
-                
-        loss = loss_function(decoded, inputs)
+        loss = loss_function(decoded, data)
         loss.backward()
         optimizer.step()
 
     # Show progress
     print('[{}/{}] Loss:'.format(epoch+1, epochs), loss.item())
 
-print(codes.shape)
 
 print('Finished Training using', device)
 print('Time: ', time.time() - start)
