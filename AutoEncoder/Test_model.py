@@ -39,20 +39,17 @@ def test():
             print(test_loader.shape)
             inputs = data.view(-1, 1, 784)
             inputs = inputs.to(device)
-            print("HALLO:   ", data.shape, "  hallo slut")
-            
+            data = data.to(device)
+            data = torch.flatten(data, 1)
             # Forward
-            code, outputs = model(inputs)
-            
-            code = code.to('cpu')
-            print(code.shape)
+            code, outputs = model(data)
             
             code = torch.flatten(code, 1)
+            code = code.to('cpu')
 
             # random_state=0 for same seed in kmeans
             #clusters = MiniBatchKMeans(n_clusters=20, n_init='auto',).fit(data)
-            clusters = KMeans(n_clusters=25, n_init='auto',).fit(code)
-        print(code.shape)
+            clusters = KMeans(n_clusters=50, n_init='auto',).fit(code)
 
     labels = test_set.targets
     ref_labels = util.retrieveInfo(clusters.labels_, labels)
