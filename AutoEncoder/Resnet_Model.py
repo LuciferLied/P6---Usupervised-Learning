@@ -123,54 +123,8 @@ class ResNet(nn.Module):
 
 resnet18 = ResNet(3, ResBlock, [2, 2, 2, 2], useBottleneck=False, outputs=1000)
 resnet18.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
-# summary(resnet18, (3, 224, 224))
-
-batch_size = 256
-epochs = 1
-lr = 0.001
-
-
-# DataLoader
-train_set = datasets.CIFAR10(
-    root="data",
-    train=True,
-    download=True,
-    transform=ToTensor(),
-)
-
-train_loader = data.DataLoader(train_set, batch_size=batch_size, shuffle=True)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-optimizer = torch.optim.Adam(resnet18.parameters(), lr=lr)
-loss_function = nn.MSELoss()
-
-model = Model.Resnet_smol().to(device)
-
-def train():
-    # Train
-    for epoch in range(epochs):
-        for pics, labels in train_loader:
-            pics = pics.to(device)
-            # pics = torch.flatten(pics, 1)
-
-            # Forward
-            decoded = resnet18(pics)
-            
-            decoded = torch.flatten(decoded, 1)
-            
-            decoded = model(decoded)
-            pics = torch.flatten(pics, 1)
-            # Backward
-            optimizer.zero_grad()
-            loss = loss_function(decoded, pics)
-            loss.backward()
-            optimizer.step()
-
-        # Show progress
-        print('[{}/{}] Loss:'.format(epoch+1, epochs), loss.item())
-
-
-# train()
 
 # DataLoader
 test_set = datasets.CIFAR10(
@@ -193,7 +147,7 @@ def test():
             
             # Forward
             code = resnet18(pics)
-            code = model(code)
+            print(code.shape)
             pics = torch.flatten(pics, 1)
             
             code = code.to('cpu')
