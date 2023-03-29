@@ -7,12 +7,16 @@ import time
 from util import Models as Model
 import torch
 import numpy as np
+import tensorflow as tf
+from torchvision import transforms
+from PIL import Image as im
+
 
 
 # DataLoader
 train_set = datasets.CIFAR10(
     root="data",
-    train=True,
+    train=False,
     download=True,
     transform=ToTensor(),
 )
@@ -22,21 +26,16 @@ train_loader = data.DataLoader(train_set, batch_size=10000, shuffle=False)
 
 model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
 model.eval()
-        
-        
 
 train_set_data_reworked = np.transpose(train_set.data, (0,3,1,2))
 
-print("Data shape:   ", train_set.data.shape)
-print("Data type:   ", type(train_set.data))
-print("Data shape reworked:   ", train_set_data_reworked.shape)
-print("Data type reworked:   ", type(train_set_data_reworked))
-print("DATA TYPE:   ", type(train_loader.))
-
-
-#output = model(train_set_data_reworked[0])
-#ResNet.forward(train_set.data[0])
-
 with torch.no_grad():
-        for data, labels in train_loader:
-            print("HALLO:   ", data.shape, "  hallo slut")
+    for pics, labels in train_loader:
+
+        print("PICS SHAPE: ", pics.shape)
+        code = model(pics)
+        print("DILDO", code.shape)
+        pics = torch.flatten(pics, 1)
+
+        print("Done")
+        print(code.shape)
