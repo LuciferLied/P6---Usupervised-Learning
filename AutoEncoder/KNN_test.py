@@ -108,3 +108,5 @@ def test_data():
         y_test = np.array(labels)
         
     KNN("CIFAR10",x_train, y_train, x_test, y_test)
+
+test_data()
