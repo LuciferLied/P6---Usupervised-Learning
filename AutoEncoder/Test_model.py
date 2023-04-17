@@ -4,8 +4,12 @@ import torch.utils.data as data
 from torchvision import datasets
 from torchvision.transforms import ToTensor
 import numpy as np
-from sklearn.cluster import MiniBatchKMeans
 from sklearn.cluster import KMeans
+from sklearn.neighbors import KNeighborsClassifier
+from torchvision import datasets, transforms
+import matplotlib.pyplot as plt
+import warnings
+warnings.filterwarnings("ignore")
 
 
 # set device
@@ -21,9 +25,11 @@ else:
 model = torch.load('autoencoder.pth')
 model.to(device)
 model.eval()
+print('model',model)
+
 
 # DataLoader
-test_set = datasets.MNIST(
+test_set = datasets.CIFAR10(
     root="data",
     train=False,
     download=True,
@@ -35,37 +41,30 @@ test_loader = data.DataLoader(test_set, batch_size=10000, shuffle=False)
 # Test
 def test():
     with torch.no_grad():
-        for data, labels in test_loader:
-            print(test_loader.shape)
-            inputs = data.view(-1, 1, 784)
-            inputs = inputs.to(device)
-            data = data.to(device)
-            data = torch.flatten(data, 1)
+        for pics, labels in test_loader:
+ 
+            pics = pics.to(device)
+            # pics = torch.flatten(pics, 1)
+            
             # Forward
-            code, outputs = model(data)
+            code, outputs = model(pics)
             
             code = torch.flatten(code, 1)
-            code = code.to('cpu')
+            print('code',code.shape)
+            code = code.cpu()
 
             # random_state=0 for same seed in kmeans
-            #clusters = MiniBatchKMeans(n_clusters=20, n_init='auto',).fit(data)
-            clusters = KMeans(n_clusters=50, n_init='auto',).fit(code)
+            # clusters = KMeans(n_clusters=50, n_init='auto',).fit(code)
+            # KNN = KNeighborsClassifier(n_neighbors=1).fit(code, labels)
+            kmeans = KMeans(n_clusters=50, n_init='auto').fit(code)
 
     labels = test_set.targets
-    ref_labels = util.retrieveInfo(clusters.labels_, labels)
-    num_predicted = util.assignPredictions(clusters.labels_, ref_labels)
-
+    labels = np.array(labels)
+    ref_labels = util.retrieveInfo(kmeans.labels_, labels)
+    num_predicted = util.assignPredictions(kmeans.labels_, ref_labels)
     accuracy = util.computeAccuracy(num_predicted, labels)
 
-    # print('Ref_labels',ref_labels)
-    # print('labels',labels[0:20])
-    # print('num_predicted',num_predicted[0:20])
-    print(model)
-    
-    # Round accuracy to 2 decimals
     accuracy = round(accuracy * 100,2)
-    
-    
     print('Accuracy',accuracy, '%')
 
 test()

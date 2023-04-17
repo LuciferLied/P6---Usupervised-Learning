@@ -79,11 +79,9 @@ class Auto_CNN(nn.Module):
         self.t_con2 = nn.LazyConvTranspose2d(1, 4)
         self.t_l1 = nn.LazyLinear(256)
         self.t_l2 = nn.LazyLinear(784)
-        self.t_l3 = nn.LazyLinear(3072)
         
     def forward(self, x):
         # Encoder
-        x = torch.flatten(x, 1)
         x = torch.relu(self.l1(x))
         x = torch.relu(self.l2(x))
         x = x.view(-1, 1, 12, 12)
@@ -97,9 +95,7 @@ class Auto_CNN(nn.Module):
         x = torch.relu(self.t_con2(x))
         x = torch.flatten(x, 2)
         x = torch.relu(self.t_l1(x))
-        x = torch.relu(self.t_l2(x))
-        x = torch.sigmoid(self.t_l3(x))
-        x = x.view(-1, 3, 32, 32)
+        x = torch.sigmoid(self.t_l2(x))
         
         return codes, x
 
@@ -189,22 +185,59 @@ class NoiseModel(nn.Module):
             nn.ReLU(),
             nn.BatchNorm2d(32),
             nn.Conv2d(32, 16, 3),
-            nn.ReLU(),
-            nn.Conv2d(16, 8, 3),
+            nn.AvgPool2d(2, 2)
         )
         
         # Decoder
         self.decoder = nn.Sequential(
-            nn.ConvTranspose2d(8, 16, 3),
+            nn.Upsample(scale_factor=2, mode='nearest'),
             nn.ConvTranspose2d(16, 32, 3),
             nn.Upsample(scale_factor=2, mode='nearest'),
             nn.Conv2d(32, 32, 3, padding='same'),
             nn.ReLU(),
             nn.BatchNorm2d(32),
             nn.Conv2d(32, 3, 3, padding='same'),
-            nn.Sigmoid()
         )
 
+    def forward(self, inputs):
+        codes = self.encoder(inputs)
+        decoded = self.decoder(codes)
+        
+        return codes, decoded
+    
+    
+# Make autoencoder for cifar 10
+class Cifar_AutoEncoder(nn.Module):
+    def __init__(self):
+        super(Cifar_AutoEncoder, self).__init__()
+
+        # Encoder
+        self.encoder = nn.Sequential(
+            nn.Conv2d(3, 32, 32, padding='same'),
+            nn.ReLU(),
+            nn.BatchNorm2d(32),
+            nn.Conv2d(32, 32, 3, stride=2, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(32, 32, 3, padding='same'),
+            nn.ReLU(),
+            nn.BatchNorm2d(32),
+            nn.Conv2d(32, 8, 3),
+            nn.AvgPool2d(2, 2)
+        )
+        
+        # Decoder
+        self.decoder = nn.Sequential(
+            nn.Upsample(scale_factor=2, mode='nearest'),
+            nn.ConvTranspose2d(8, 32, 3),
+            nn.Upsample(scale_factor=2, mode='nearest'),
+            nn.Conv2d(32, 32, 3, padding='same'),
+            nn.ReLU(),
+            nn.BatchNorm2d(32),
+            nn.Conv2d(32, 3, 3, padding='same'),
+            nn.Sigmoid()
+            
+        )
+        
     def forward(self, inputs):
         codes = self.encoder(inputs)
         decoded = self.decoder(codes)

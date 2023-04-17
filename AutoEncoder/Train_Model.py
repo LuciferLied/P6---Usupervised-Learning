@@ -4,28 +4,31 @@ import torch.nn as nn
 import torch.utils.data as data
 from torchvision import datasets
 from torchvision.transforms import ToTensor
+import torchvision.transforms as T
 import time 
 from util import Models as Model
-
+import matplotlib.pyplot as plt
+import numpy as np
+import warnings
+warnings.filterwarnings("ignore")
 
 start = time.time()
 # set device
 if torch.cuda.is_available():
     print('Using GPU')
     dtype = torch.float32
-    device = torch.device('cuda:0')
+    device = torch.device('cuda')
 else:
     print('Using CPU')
     device = torch.device('cpu')
 
-
 # Settings
 epochs = 5
-batch_size = 128
+batch_size = 256
 lr = 0.001
 
 # DataLoader
-train_set = datasets.MNIST(
+train_set = datasets.CIFAR10(
     root="data",
     train=True,
     download=True,
@@ -34,9 +37,35 @@ train_set = datasets.MNIST(
 
 train_loader = data.DataLoader(train_set, batch_size=batch_size, shuffle=True)
 
+# train_unlabeled_dataset = datasets.STL10(
+#     root="data",
+#     split="unlabeled",
+#     download=True,
+#     transform=ToTensor()
+# )
+# test_labeled_dataset = datasets.STL10(
+#     root="data",
+#     split="test",
+#     download=True,
+#     transform=ToTensor()
+# )
+
+# train_unlabeled_dataloader = data.DataLoader(
+#     dataset=train_unlabeled_dataset,
+#     train=True,
+#     download=True,
+#     transform=ToTensor(),
+# )
+# test_labeled_dataloader = data.DataLoader(
+#     dataset=test_labeled_dataset,
+#     train=False,
+#     download=True,
+#     transform=ToTensor(),
+# )
+
 
 # Optimizer and loss function
-model = Model.Auto_CNN()
+model = Model.Cifar_AutoEncoder()
 print(model)
 
 model.to(device)
@@ -45,23 +74,38 @@ loss_function = nn.MSELoss()
 
 # Train
 for epoch in range(epochs):
-    for data, labels in train_loader:
-
-        data = data.to(device)
-        data = torch.flatten(data, 1)
+    for pics, labels in train_loader:
+        pics = pics.to(device)
+        pics1 = pics
+        
+        #greyscale pics
+        # pics = T.Grayscale()(pics)
+        # pics = torch.flatten(pics, 1)
 
         # Forward
-        codes, decoded = model(data)
-        decoded = torch.flatten(decoded, 1)
-        
+        codes, decoded = model(pics)
+
+        decoded1 = decoded
+        # decoded = torch.flatten(decoded, 1)
         # Backward
         optimizer.zero_grad()
-        loss = loss_function(decoded, data)
+        
+        loss = loss_function(decoded, pics)
+        
         loss.backward()
         optimizer.step()
-
+    print('codes', codes.shape)
     # Show progress
     print('[{}/{}] Loss:'.format(epoch+1, epochs), loss.item())
+
+    plt.imshow(pics1[1].cpu().squeeze().numpy().transpose(1, 2, 0))
+    # plt.imshow(pics1[1].cpu().squeeze().numpy())
+    plt.savefig('pics/original.png')
+    decoded1 = decoded1[1].view(-1, 3, 32, 32)
+    plt.imshow(decoded1.cpu().squeeze().detach().numpy().transpose(1, 2, 0))
+    # plt.imshow(decoded1.cpu().squeeze().detach().numpy())
+    plt.savefig('pics/reconstructed.png')
+
 
 
 print('Finished Training using', device)
