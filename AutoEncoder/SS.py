@@ -78,6 +78,20 @@ class SupervisedModel():
                 y_pred = self.model(pics)
                 all += len(y_pred)
                 
+                preds = torch.argmax(y_pred, dim=1)
+
+                # Make a new dataset with the pics and the predictions with batch size 128
+                data = torch.utils.data.TensorDataset(pics, labels)
+                data = DataLoader(dataset=data,batch_size=setting["batch_size"])
+
+                correct = 0
+                for pics, inner_labels in data:
+                    #Correct is the number of correct predictions
+                    correct += SupervisedModel.count_correct(inner_labels, labels)
+                    print('correct',correct)
+                    break
+                
+                
                 #loss is the sum of the loss of each image
                 loss += loss_fn(y_pred, labels)
                 
@@ -96,37 +110,19 @@ class SupervisedModel():
         stored = torch.tensor(stored)
         
         for pics, labels in train_dl:
-            print('labels',labels.shape)
-            print('pics',pics.shape)
-            
+           
             pics = pics.to(device)
             labels = labels.to(device)
 
             y_pred = self.model(pics)
-            preds = torch.argmax(y_pred, dim=1)
-            print('preds',preds.shape)
 
-            # Zip predictions and pictures together
-            arr = []
-            arr += zip(pics, preds)
-
-            
-   
-            
-            print('arr',arr.shape)
-            for pics, labels in arr:
-                print('labels',labels.shape)
-                print('pics',pics.shape)
-            
             # loss is the sum of the loss of each image
             loss = loss_fn(y_pred, labels)
             loss.backward()
             optimiser.step()
             optimiser.zero_grad() 
-            exit()
 
         self.model.eval()
-        print('arr',stored.shape)
 
 
     def fit(self, loss_fn, train_dl, test_dl, epochs):
