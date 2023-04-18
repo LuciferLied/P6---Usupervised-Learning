@@ -16,7 +16,7 @@ else:
     device = torch.device('cpu')
 
 setting = {
-    'epochs': 3,
+    'epochs': 1,
     'lr': 0.001,
     'batch_size': 128,
 }
@@ -78,20 +78,6 @@ class SupervisedModel():
                 y_pred = self.model(pics)
                 all += len(y_pred)
                 
-                preds = torch.argmax(y_pred, dim=1)
-
-                # Make a new dataset with the pics and the predictions with batch size 128
-                data = torch.utils.data.TensorDataset(pics, labels)
-                data = DataLoader(dataset=data,batch_size=setting["batch_size"])
-
-                correct = 0
-                for pics, inner_labels in data:
-                    #Correct is the number of correct predictions
-                    correct += SupervisedModel.count_correct(inner_labels, labels)
-                    print('correct',correct)
-                    break
-                
-                
                 #loss is the sum of the loss of each image
                 loss += loss_fn(y_pred, labels)
                 
@@ -115,7 +101,7 @@ class SupervisedModel():
             labels = labels.to(device)
 
             y_pred = self.model(pics)
-
+            
             # loss is the sum of the loss of each image
             loss = loss_fn(y_pred, labels)
             loss.backward()
@@ -151,19 +137,17 @@ class SupervisedModel():
     
     # self label
     def self_label(self, train_dl):
-        # Store the predictions of the model
-        arr = []
-        
         for pics, labels in train_dl:
             pics = pics.to(device)
-            labels = labels.to(device)
 
             y_pred = self.model(pics)
+            preds = torch.argmax(y_pred, dim=1)
+
+            # Make a new dataset with the pics and the predictions with batch size 128
+            data = torch.utils.data.TensorDataset(pics, preds)
+            data = DataLoader(dataset=data,batch_size=setting["batch_size"])           
             
-            print('labels',y_pred.shape)
-            
-            
-        return y_pred
+        return data
 
 def train_model():
     encoder = torchvision.models.resnet18()
@@ -179,13 +163,21 @@ def train_model():
 history_baseline = train_model()
 
 
-def self_label():
+def self_label(data):
     # Load the model
     self_label_model = torch.load('semi.pth') 
-    
     self_label_model.model.eval()
     self_label_model.model.to(device)
-    self_label_model.self_label(train_unlabeled_dataloader)
+    labeled = self_label_model.self_label(data)
+
+    for pics, labels in labeled:
+        print(pics.shape)
+        print(labels.shape)
+        # Print batch size
+        print(labeled.batch_size)
+        break
     
- 
+    
     return 
+
+self_label(train_labeled_dataloader)
