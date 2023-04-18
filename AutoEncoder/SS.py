@@ -1,3 +1,4 @@
+from matplotlib import pyplot as plt
 import torch
 import torchvision
 import time
@@ -16,7 +17,7 @@ else:
     device = torch.device('cpu')
 
 setting = {
-    'epochs': 1,
+    'epochs': 7,
     'lr': 0.001,
     'batch_size': 128,
 }
@@ -137,15 +138,28 @@ class SupervisedModel():
     
     # self label
     def self_label(self, train_dl):
+        predicts = []
+        predicts = torch.tensor(predicts)
+        predicts = predicts.to(device)
+        pictures = []
+        pictures = torch.tensor(pictures)
+        pictures = pictures.to(device)
+        
         for pics, labels in train_dl:
+            # start = time.time()
             pics = pics.to(device)
+            labels = labels.to(device)
 
             y_pred = self.model(pics)
             preds = torch.argmax(y_pred, dim=1)
+            
+            predicts = torch.cat((predicts, preds), 0)
+            pictures = torch.cat((pictures, pics), 0)
+            # print(f"time {time.time() - start:.1f}s")
 
-            # Make a new dataset with the pics and the predictions with batch size 128
-            data = torch.utils.data.TensorDataset(pics, preds)
-            data = DataLoader(dataset=data,batch_size=setting["batch_size"])           
+        # Make a new dataset with the pics and the predictions with batch size 128
+        data = torch.utils.data.TensorDataset(pictures, predicts)
+        data = DataLoader(dataset=data,batch_size=setting["batch_size"])           
             
         return data
 
@@ -155,29 +169,30 @@ def train_model():
     baseline_model = SupervisedModel(encoder)
 
     loss_fn = nn.CrossEntropyLoss(reduction='sum')
-    # Save
     torch.save(baseline_model, 'semi.pth')
         
     return baseline_model.fit(loss_fn, train_labeled_dataloader, test_labeled_dataloader, setting["epochs"])
 
 history_baseline = train_model()
 
-
 def self_label(data):
     # Load the model
     self_label_model = torch.load('semi.pth') 
     self_label_model.model.eval()
     self_label_model.model.to(device)
+    
     labeled = self_label_model.self_label(data)
-
+    # print batch size of labeled
+    print(labeled.batch_size)
+    
     for pics, labels in labeled:
-        print(pics.shape)
-        print(labels.shape)
-        # Print batch size
-        print(labeled.batch_size)
+        plt.imshow(pics[7].cpu().squeeze().numpy().transpose(1, 2, 0))
+        # plt.imshow(pics1[1].cpu().squeeze().numpy())
+        plt.savefig('pics/original.png')
+        print(labels[7])
         break
     
     
     return 
 
-self_label(train_labeled_dataloader)
+self_label(train_unlabeled_dataloader)
