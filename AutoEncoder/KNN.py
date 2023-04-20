@@ -1,19 +1,14 @@
-import numpy as np
 import torch
 import torch.nn as nn
 from torchvision import datasets
 from torchvision.transforms import ToTensor
 import torch.utils.data as data
-from util import utils as util
-from sklearn.cluster import KMeans
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import accuracy_score,confusion_matrix
+import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 from util import Models as Model
-from sklearn.preprocessing import StandardScaler
 import warnings
 warnings.filterwarnings("ignore")
+
 
 # set device
 if torch.cuda.is_available():
@@ -48,35 +43,35 @@ test_set = datasets.CIFAR10(
 test_loader = data.DataLoader(test_set, batch_size=10000, shuffle=False)
 
 setting = {
-    'epochs': 7,
+    'epochs': 16,
     'lr': 0.001
 }
 
-model = Model.Cifar_AutoEncoder()
-model.to(device)
-
+Encoder = Model.Encoder()
+Encoder.to(device)
+Decoder = Model.Decoder()
+Decoder.to(device)
 # Optimizer and loss function
-optimizer = torch.optim.Adam(model.parameters(), lr=setting['lr'])
+optimizer = torch.optim.Adam(list(Encoder.parameters()) + list(Decoder.parameters()), lr=setting['lr'])
 criteria = nn.MSELoss()
-
 
 # Train
 def train():
     for epoch in range(setting['epochs']):
         for pics, labels in train_loader:
             pics = pics.to(device)
-            
+
             # Forward
-            codes, decoded = model(pics)
-            
+            recon = Decoder(Encoder(pics))
+
             # Backward
             optimizer.zero_grad()
-            loss = criteria(decoded, pics)            
+            loss = criteria(recon, pics)            
             loss.backward()
             optimizer.step()
             
             save_pic = pics
-            save_dec = decoded
+            save_dec = recon
         
         # Show progress
         print('[{}/{}] Loss:'.format(epoch+1, setting['epochs']), loss.item())
@@ -91,4 +86,5 @@ def train():
 train()
 
 # Save
-torch.save(model, 'KNN.pth')
+torch.save(Encoder, 'Enc.pth')
+torch.save(Decoder, 'Dec.pth')

@@ -103,13 +103,11 @@ class Cifar(nn.Module):
     def __init__(self):
         super(Cifar, self).__init__()
         
-        # Input: (1 channel, 28x28 pixels) = 784
         # Encoder
         self.l1 = nn.LazyLinear(2000)
         self.l2 = nn.LazyLinear(900)
         self.con1 = nn.LazyConv2d(5, 3)
         self.con2 = nn.LazyConv2d(3, 3)
-        self.pool = nn.MaxPool2d(2, 2)
         
         # Decoder
         self.t_con1 = nn.LazyConvTranspose2d(4, 3)
@@ -170,42 +168,6 @@ class LinearCifar(nn.Module):
         
         return codes, x
 
-class NoiseModel(nn.Module):
-    def __init__(self):
-        super(NoiseModel, self).__init__()
-        
-        # Encoder
-        self.encoder = nn.Sequential(
-            nn.Conv2d(3, 32, 32, padding='same'),
-            nn.ReLU(),
-            nn.BatchNorm2d(32),
-            nn.Conv2d(32, 32, 3, stride=2, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(32, 32, 3, padding='same'),
-            nn.ReLU(),
-            nn.BatchNorm2d(32),
-            nn.Conv2d(32, 16, 3),
-            nn.AvgPool2d(2, 2)
-        )
-        
-        # Decoder
-        self.decoder = nn.Sequential(
-            nn.Upsample(scale_factor=2, mode='nearest'),
-            nn.ConvTranspose2d(16, 32, 3),
-            nn.Upsample(scale_factor=2, mode='nearest'),
-            nn.Conv2d(32, 32, 3, padding='same'),
-            nn.ReLU(),
-            nn.BatchNorm2d(32),
-            nn.Conv2d(32, 3, 3, padding='same'),
-        )
-
-    def forward(self, inputs):
-        codes = self.encoder(inputs)
-        decoded = self.decoder(codes)
-        
-        return codes, decoded
-    
-    
 # Make autoencoder for cifar 10
 class Cifar_AutoEncoder(nn.Module):
     def __init__(self):
@@ -222,7 +184,7 @@ class Cifar_AutoEncoder(nn.Module):
             nn.ReLU(),
             nn.BatchNorm2d(32),
             nn.Conv2d(32, 8, 3),
-            nn.AvgPool2d(2, 2)
+            nn.MaxPool2d(2, 2)            
         )
         
         # Decoder
@@ -235,7 +197,6 @@ class Cifar_AutoEncoder(nn.Module):
             nn.BatchNorm2d(32),
             nn.Conv2d(32, 3, 3, padding='same'),
             nn.Sigmoid()
-            
         )
         
     def forward(self, inputs):
@@ -243,3 +204,39 @@ class Cifar_AutoEncoder(nn.Module):
         decoded = self.decoder(codes)
         
         return codes, decoded
+
+# Make autoencoder for cifar 10
+class Encoder(nn.Module):
+    def __init__(self):
+        super().__init__()
+        
+        self.encoder = nn.Sequential(
+            nn.LazyConv2d(12, 4, stride=2, padding=1),
+            nn.ReLU(),
+            nn.LazyConv2d(24, 4, stride=2, padding=1),
+            nn.BatchNorm2d(24),
+            nn.ReLU(),
+            nn.LazyConv2d(48, 4, stride=2, padding=1),
+            nn.ReLU()
+        )
+    def forward(self, x):
+        x = self.encoder(x)
+        return x
+        
+class Decoder(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.decoder = nn.Sequential(
+            nn.LazyConvTranspose2d(24, 4, stride=2, padding=1),
+            nn.ReLU(),
+            nn.LazyConvTranspose2d(12, 4,stride=2, padding=1),
+            nn.BatchNorm2d(12),
+            nn.ReLU(),
+            nn.LazyConvTranspose2d(3, 4,stride=2, padding=1),
+            nn.Sigmoid()
+        )
+        
+    def forward(self, x):
+        x = self.decoder(x)
+        return x
+    

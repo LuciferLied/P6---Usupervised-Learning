@@ -1,16 +1,14 @@
 import numpy as np
+from sklearn.model_selection import GridSearchCV
 import torch
 from torchvision import datasets
 from torchvision.transforms import ToTensor
 import torch.utils.data as data
-from util import utils as util
-from sklearn.cluster import KMeans
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score,confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
-from util import Models as Model
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import RobustScaler, StandardScaler
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -25,10 +23,10 @@ else:
     device = torch.device('cpu')
 
 # Load model
-model = torch.load('KNN.pth')
-model.to(device)
-model.eval()
-print('model',model)
+Encoder = torch.load('Enc.pth')
+Encoder.to(device)
+Decoder = torch.load('Dec.pth')
+Decoder.to(device)
 
 
 # Settings
@@ -42,9 +40,8 @@ train_set = datasets.CIFAR10(
     transform=ToTensor(),
 )
 
-train_loader = data.DataLoader(train_set, batch_size=batch_size, shuffle=True)
+train_loader = data.DataLoader(train_set, batch_size=batch_size, shuffle=False)
 
-# DataLoader
 test_set = datasets.CIFAR10(
     root="data",
     train=False,
@@ -52,61 +49,94 @@ test_set = datasets.CIFAR10(
     transform=ToTensor(),
 )
 
-test_loader = data.DataLoader(test_set, batch_size=10000, shuffle=False)
+test_loader = data.DataLoader(test_set, batch_size=batch_size, shuffle=False)
+
+#Classes
+classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
 
-def KNN(TextString,x_train,y_train,x_test,y_test):
 
-    print('x_train shape: ',x_train.shape)
-    print('x_test shape: ',x_test.shape)
+def KNN(train_data,train_labs,test_data,test_labs):
+
+    print('train_data shape: ',train_data.shape)
+    print('test_data shape: ',test_data.shape)
     
-    clf = KNeighborsClassifier(n_neighbors=2)
+    KNN = KNeighborsClassifier()
     scaler = StandardScaler()
-    scaled_train = scaler.fit_transform(x_train)
-    scaled_test = scaler.fit_transform(x_test)
+    
+    train_data = scaler.fit_transform(train_data)
+    test_data = scaler.fit_transform(test_data)
 
-    clf.fit(scaled_train,y_train)
-    y_pred = clf.predict(scaled_test)
+    KNN.fit(train_data,train_labs)
+    predicted = KNN.predict(test_data)
+
 
     #In order to pretty print output
-    print("Accuracy of {} KNN is %{}".format(TextString,accuracy_score(y_pred=y_pred,y_true=y_test)*100))
+    print('Accuracy is :',accuracy_score(predicted,test_labs)*100,'%')
 
-    confmatrix = confusion_matrix(y_pred=y_pred,y_true=y_test)
+        #List Hyperparameters to tune
+    leaf_size = list(range(1,20))
+    n_neighbors = list(range(1,12))
+    p=[1,2]
+    #convert to dictionary
+    hyperparameters = dict(leaf_size=leaf_size, n_neighbors=n_neighbors, p=p)
+    #Making model
+    clf = GridSearchCV(KNN, hyperparameters, cv=10)
+    best_model = clf.fit(train_data,train_labs)
+    #Best Hyperparameters Value
+    print('Best leaf_size:', best_model.best_estimator_.get_params()['leaf_size'])
+    print('Best p:', best_model.best_estimator_.get_params()['p'])
+    print('Best n_neighbors:', best_model.best_estimator_.get_params()['n_neighbors'])
+    #Predict testing set
+    y_pred = best_model.predict(test_data)
+    #Check performance using accuracy
+    print(accuracy_score(test_labs, y_pred))
+    
+    # confmatrix = confusion_matrix(predicted,test_labs)
 
-    plt.subplots(figsize=(6,6))
-    sns.heatmap(confmatrix,annot=True,fmt=".1f",linewidths=1.5)
-    plt.savefig('pics/{}.png'.format(TextString))
+    # plt.subplots(figsize=(6,6))
+    # sns.heatmap(confmatrix,annot=True,fmt=".1f",linewidths=1.5)
+    # plt.savefig('confusion_matrix.png')
 
 def test_data():
     with torch.no_grad():
-        x_data = []
-        x_data = torch.tensor(x_data)
-        x_lab = []
-        x_lab = torch.tensor(x_lab)
+        train_data = torch.tensor([])
+        train_labs = torch.tensor([])
+        test_labs = torch.tensor([])
+        test_data = torch.tensor([])
 
-        for pics, labels in train_loader:
-            pics = pics.to(device)
-            x_train, decoded = model(pics)
-            x_train = x_train.to('cpu')
-            x_train = torch.flatten(x_train, 1)
+        for train_pics, train_labels in train_loader:
+            train_pics = train_pics.to(device)
+            train_codes = Encoder(train_pics)
             
-            x_lab = torch.cat((x_lab, labels), 0)
-            x_data = torch.cat((x_data, x_train), 0)
+            train_codes = train_codes.to('cpu')
+            train_codes = torch.flatten(train_codes, 1)
+            
+            train_data = torch.cat((train_data, train_codes), 0)
+            train_labs = torch.cat((train_labs, train_labels), 0)
+            if len(train_data) > 5000:
+                break
         
     with torch.no_grad():
-        for pics, labels in test_loader:
-            pics = pics.to(device)
-            codes, decoded = model(pics)
-            codes = codes.to('cpu')
-            codes = torch.flatten(codes, 1)
+        for test_pics, test_labels in test_loader:
+            test_pics = test_pics.to(device)
+            test_codes = Encoder(test_pics)
             
-        x_train = np.array(x_data)
-        x_train = x_train[:-1]
-        y_train = np.array(x_lab)
-        y_train = y_train[:-1]
-        x_test = np.array(codes)
-        y_test = np.array(labels)
+            test_codes = test_codes.to('cpu')
+            test_codes = torch.flatten(test_codes, 1)
+            
+            test_labs = torch.cat((test_labs, test_labels), 0)
+            test_data = torch.cat((test_data, test_codes), 0)
+            if len(test_data) > 5000:
+                break
         
-    KNN("CIFAR10",x_train, y_train, x_test, y_test)
+        train_data = np.array(train_data)
+        train_data = train_data[:-1]
+        train_labs = np.array(train_labs)
+        train_labs = train_labs[:-1]
+        test_data = np.array(test_data)
+        test_labs = np.array(test_labs)        
+        
+    KNN(train_data, train_labs, test_data, test_labs)
 
 test_data()
