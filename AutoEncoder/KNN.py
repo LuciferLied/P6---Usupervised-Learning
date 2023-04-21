@@ -13,14 +13,19 @@ warnings.filterwarnings("ignore")
 # set device
 if torch.cuda.is_available():
     print('Using GPU')
-    dtype = torch.float32
+    # dtype = torch.float32
     device = torch.device('cuda')
 else:
     print('Using CPU')
     device = torch.device('cpu')
 
 # Settings
-batch_size = 256
+setting = {
+    'batch_size': 256,
+    'epochs': 14,
+    'lr': 0.001
+}
+
 
 # DataLoader
 train_set = datasets.CIFAR10(
@@ -30,29 +35,13 @@ train_set = datasets.CIFAR10(
     transform=ToTensor(),
 )
 
-train_loader = data.DataLoader(train_set, batch_size=batch_size, shuffle=True)
+train_loader = data.DataLoader(train_set, batch_size=setting['batch_size'], shuffle=True)
 
-# DataLoader
-test_set = datasets.CIFAR10(
-    root="data",
-    train=False,
-    download=True,
-    transform=ToTensor(),
-)
+model = Model.Cifar_AutoEncoder()
+model.to(device)
 
-test_loader = data.DataLoader(test_set, batch_size=10000, shuffle=False)
-
-setting = {
-    'epochs': 16,
-    'lr': 0.001
-}
-
-Encoder = Model.Encoder()
-Encoder.to(device)
-Decoder = Model.Decoder()
-Decoder.to(device)
 # Optimizer and loss function
-optimizer = torch.optim.Adam(list(Encoder.parameters()) + list(Decoder.parameters()), lr=setting['lr'])
+optimizer = torch.optim.Adam(model.parameters(), lr=setting['lr'])
 criteria = nn.MSELoss()
 
 # Train
@@ -62,7 +51,7 @@ def train():
             pics = pics.to(device)
 
             # Forward
-            recon = Decoder(Encoder(pics))
+            codes, recon = model(pics)
 
             # Backward
             optimizer.zero_grad()
@@ -86,5 +75,4 @@ def train():
 train()
 
 # Save
-torch.save(Encoder, 'Enc.pth')
-torch.save(Decoder, 'Dec.pth')
+torch.save(model, 'Cif10.pth')

@@ -8,7 +8,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score,confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.preprocessing import RobustScaler, StandardScaler
+from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -23,11 +23,8 @@ else:
     device = torch.device('cpu')
 
 # Load model
-Encoder = torch.load('Enc.pth')
-Encoder.to(device)
-Decoder = torch.load('Dec.pth')
-Decoder.to(device)
-
+model = torch.load('Cif10.pth')
+model.to(device)
 
 # Settings
 batch_size = 256
@@ -55,11 +52,12 @@ test_loader = data.DataLoader(test_set, batch_size=batch_size, shuffle=False)
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
 
-
 def KNN(train_data,train_labs,test_data,test_labs):
 
     print('train_data shape: ',train_data.shape)
+    print('train_labs shape: ',train_labs.shape)
     print('test_data shape: ',test_data.shape)
+    print('test_labs shape: ',test_labs.shape)
     
     KNN = KNeighborsClassifier()
     scaler = StandardScaler()
@@ -74,9 +72,9 @@ def KNN(train_data,train_labs,test_data,test_labs):
     #In order to pretty print output
     print('Accuracy is :',accuracy_score(predicted,test_labs)*100,'%')
 
-        #List Hyperparameters to tune
-    leaf_size = list(range(1,20))
-    n_neighbors = list(range(1,12))
+    #List Hyperparameters to tune
+    leaf_size = list(range(1,5))
+    n_neighbors = list(range(1,8))
     p=[1,2]
     #convert to dictionary
     hyperparameters = dict(leaf_size=leaf_size, n_neighbors=n_neighbors, p=p)
@@ -92,11 +90,11 @@ def KNN(train_data,train_labs,test_data,test_labs):
     #Check performance using accuracy
     print(accuracy_score(test_labs, y_pred))
     
-    # confmatrix = confusion_matrix(predicted,test_labs)
+    confmatrix = confusion_matrix(predicted,test_labs)
 
-    # plt.subplots(figsize=(6,6))
-    # sns.heatmap(confmatrix,annot=True,fmt=".1f",linewidths=1.5)
-    # plt.savefig('confusion_matrix.png')
+    plt.subplots(figsize=(6,6))
+    sns.heatmap(confmatrix,annot=True,fmt=".1f",linewidths=1.5)
+    plt.savefig('confusion_matrix.png')
 
 def test_data():
     with torch.no_grad():
@@ -107,7 +105,7 @@ def test_data():
 
         for train_pics, train_labels in train_loader:
             train_pics = train_pics.to(device)
-            train_codes = Encoder(train_pics)
+            train_codes, _ = model(train_pics)
             
             train_codes = train_codes.to('cpu')
             train_codes = torch.flatten(train_codes, 1)
@@ -120,22 +118,20 @@ def test_data():
     with torch.no_grad():
         for test_pics, test_labels in test_loader:
             test_pics = test_pics.to(device)
-            test_codes = Encoder(test_pics)
+            test_codes, _ = model(test_pics)
             
             test_codes = test_codes.to('cpu')
             test_codes = torch.flatten(test_codes, 1)
             
-            test_labs = torch.cat((test_labs, test_labels), 0)
             test_data = torch.cat((test_data, test_codes), 0)
+            test_labs = torch.cat((test_labs, test_labels), 0)
             if len(test_data) > 5000:
                 break
-        
-        train_data = np.array(train_data)
+
+        # Remove last element
         train_data = train_data[:-1]
-        train_labs = np.array(train_labs)
         train_labs = train_labs[:-1]
-        test_data = np.array(test_data)
-        test_labs = np.array(test_labs)        
+
         
     KNN(train_data, train_labs, test_data, test_labs)
 
