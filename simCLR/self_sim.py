@@ -583,6 +583,7 @@ def valid(valid_loader, model, criterion):
 tr_loss = []
 val_loss = []
 
+combined_time = time.time()
 for epoch in range(epochs):
         
     print(f"Epoch [{epoch}/{epochs}]\t")
@@ -626,7 +627,7 @@ for epoch in range(epochs):
 
     if (epoch+1)%10==0:
         plot_features(model.backbone, 10, 512, 128) #, valimages)
-
+print(f"Total Time Taken: {(time.time()-combined_time)/60} minutes")
 ## end training
 save_model(model, optimizer, mainscheduler, current_epoch, "SimCLR_CIFAR10_RN50_P128_LR0P2_LWup10_Cos500_T0p5_B128_checkpoint_{}_260621.pt")
 
