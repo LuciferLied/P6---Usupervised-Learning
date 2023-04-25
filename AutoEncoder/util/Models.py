@@ -1,6 +1,9 @@
 # Model structure
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+from torchvision.models.resnet import resnet18
+
 
 class AutoEncoder(nn.Module):
     def __init__(self):
@@ -183,12 +186,14 @@ class Cifar_AutoEncoder(nn.Module):
             nn.Conv2d(32, 32, 3, padding='same'),
             nn.ReLU(),
             nn.BatchNorm2d(32),
-            nn.Conv2d(32, 1, 3),
+            nn.Conv2d(32, 8, 3),
+            nn.AvgPool2d(2, 2)
         )
         
         # Decoder
         self.decoder = nn.Sequential(
-            nn.ConvTranspose2d(1, 32, 3),
+            nn.Upsample(scale_factor=2, mode='nearest'),
+            nn.ConvTranspose2d(8, 32, 3),
             nn.Upsample(scale_factor=2, mode='nearest'),
             nn.Conv2d(32, 32, 3, padding='same'),
             nn.ReLU(),
@@ -209,21 +214,21 @@ class Cif10(nn.Module):
         super().__init__()
         
         self.encoder = nn.Sequential(
-            nn.LazyConv2d(12, 4, stride=2, padding=1),
+            nn.Conv2d(3, 12, 4, stride=2, padding=1),
             nn.ReLU(),
-            nn.LazyConv2d(24, 4, stride=2, padding=1),
+            nn.Conv2d(12, 24, 4, stride=2, padding=1),
             nn.BatchNorm2d(24),
             nn.ReLU(),
-            nn.LazyConv2d(48, 4, stride=2, padding=1),
+            nn.Conv2d(24, 48, 4, stride=2, padding=1),
             nn.ReLU()
         )
         self.decoder = nn.Sequential(
-            nn.LazyConvTranspose2d(24, 4, stride=2, padding=1),
+            nn.ConvTranspose2d(48, 24, 4, stride=2, padding=1),
             nn.ReLU(),
-            nn.LazyConvTranspose2d(12, 4,stride=2, padding=1),
+            nn.ConvTranspose2d(24, 12, 4,stride=2, padding=1),
             nn.BatchNorm2d(12),
             nn.ReLU(),
-            nn.LazyConvTranspose2d(3, 4,stride=2, padding=1),
+            nn.ConvTranspose2d(12, 3, 4,stride=2, padding=1),
             nn.Sigmoid()
         )
         
@@ -232,4 +237,23 @@ class Cif10(nn.Module):
         codes = x
         x = self.decoder(x)
         
-        return codes, x
+        return F.normalize(codes,dim=1), F.normalize(x, dim=1)
+
+
+class simCLR(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.base_encoder = resnet18(pretrained=True)
+        self.projection_head = nn.Sequential(
+            nn.LazyLinear(512),
+            nn.BatchNorm1d(512),
+            nn.ReLU(inplace=True),
+            nn.Linear(512, 512),
+        )
+        
+    def forward(self, x):
+        x = self.base_encoder(x)
+        codes = x
+        x = torch.flatten(x, 1)
+        x = self.projection_head(x)
+        return F.normalize(codes,dim=1), F.normalize(x, dim=1)

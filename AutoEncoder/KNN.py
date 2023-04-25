@@ -73,7 +73,6 @@ model.to(device)
 
 # Optimizer and loss function
 optimizer = torch.optim.Adam(model.parameters(), lr=setting['lr'],weight_decay=1e-5)
-criteria = nn.MSELoss()
 
 temperature = 0.5
 # Train
