@@ -243,17 +243,42 @@ class Cif10(nn.Module):
 class simCLR(nn.Module):
     def __init__(self):
         super().__init__()
-        self.base_encoder = resnet18(pretrained=True)
+        self.base_encoder = resnet18()
         self.projection_head = nn.Sequential(
             nn.LazyLinear(512),
             nn.BatchNorm1d(512),
             nn.ReLU(inplace=True),
-            nn.Linear(512, 512),
+            nn.Linear(512, 128),
         )
         
     def forward(self, x):
         x = self.base_encoder(x)
-        codes = x
-        x = torch.flatten(x, 1)
-        x = self.projection_head(x)
-        return F.normalize(codes,dim=1), F.normalize(x, dim=1)
+        codes = torch.flatten(x, 1)
+        out = self.projection_head(codes)
+        return F.normalize(codes,dim=1), F.normalize(out, dim=1)
+    
+class SimModel(nn.Module):
+    def __init__(self, feature_dim=128):
+        super(SimModel, self).__init__()
+
+        self.encoder = []
+        for name, module in resnet18().named_children():
+            if name == 'conv1':
+                module = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+            if not isinstance(module, nn.Linear) and not isinstance(module, nn.MaxPool2d):
+                self.encoder.append(module)
+        # encoder
+        self.encoder = nn.Sequential(*self.encoder)
+        # projection head
+        self.g = nn.Sequential(
+            nn.Linear(512, 512, bias=False),
+            nn.BatchNorm1d(512),
+            nn.ReLU(inplace=True),
+            nn.Linear(512, feature_dim, bias=True)
+        )
+
+    def forward(self, x):
+        x = self.encoder(x)
+        feature = torch.flatten(x, start_dim=1)
+        out = self.g(feature)
+        return F.normalize(feature, dim=-1), F.normalize(out, dim=-1)
