@@ -258,7 +258,7 @@ class simCLR(nn.Module):
         return F.normalize(codes,dim=1), F.normalize(out, dim=1)
     
 class SimModel(nn.Module):
-    def __init__(self, feature_dim=128):
+    def __init__(self, feature_dim):
         super(SimModel, self).__init__()
 
         self.encoder = []

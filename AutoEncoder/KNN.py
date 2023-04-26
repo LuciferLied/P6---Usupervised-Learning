@@ -4,6 +4,10 @@ from torchvision.transforms import ToTensor
 import torch.utils.data as data
 from util import Models as Model
 from tqdm import tqdm
+from PIL import Image
+from torchvision import transforms
+import torch.nn as nn
+from torchvision.datasets import CIFAR10
 
 # set device
 if torch.cuda.is_available():
@@ -16,13 +20,10 @@ else:
 # Settings
 setting = {
     'batch_size': 256,
-    'epochs': 15,
-    'lr': 0.001
+    'epochs': 5,
+    'lr': 0.001,
+    'feature_dim': 128,
 }
-
-from PIL import Image
-from torchvision import transforms
-from torchvision.datasets import CIFAR10
 
 class CIFAR10Pair(CIFAR10):
     def __getitem__(self, index):
@@ -45,25 +46,14 @@ train_transform = transforms.Compose([
     # transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
     # transforms.RandomGrayscale(p=0.2),
     transforms.ToTensor(),
-    transforms.Normalize([0.4914, 0.4822, 0.4465], [0.2023, 0.1994, 0.2010])])
+    transforms.Normalize([0.4914, 0.4822, 0.4465], [0.2023, 0.1994, 0.2010])
+])
 
-test_transform = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize([0.4914, 0.4822, 0.4465], [0.2023, 0.1994, 0.2010])])
-
-# DataLoader
-train_set = datasets.CIFAR10(
-    root="data",
-    train=True,
-    download=True,
-    transform=ToTensor(),
-)
-train_loader = data.DataLoader(train_set, batch_size=setting['batch_size'], shuffle=True)
 
 train_data = CIFAR10Pair(root='data', train=True, transform=train_transform, download=True)
 augmeted_loader = data.DataLoader(train_data, batch_size=setting['batch_size'], shuffle=True, pin_memory=True,drop_last=True)
 
-model = Model.SimModel()
+model = Model.SimModel(setting['feature_dim'])
 model.to(device)
 
 # Optimizer and loss function
@@ -97,6 +87,7 @@ def train():
             # [2*B]
             pos_sim = torch.cat([pos_sim, pos_sim], dim=0)
             loss = (- torch.log(pos_sim / sim_matrix.sum(dim=-1))).mean()
+            
             
             # Backward
             optimizer.zero_grad()
