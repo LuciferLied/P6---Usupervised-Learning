@@ -1,4 +1,3 @@
-from sklearn.model_selection import GridSearchCV
 import torch
 from torchvision.transforms import ToTensor
 import torch.utils.data as data
@@ -8,6 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
 from torchvision import datasets, transforms
+from util import utils
 import time
 
 # set device
@@ -19,7 +19,7 @@ else:
 device = torch.device('cpu')
 
 # Load model
-model = torch.load('Cif10.pth')
+model = torch.load('trained_models/Cif10_70.pth')
 model.to(device)
 
 # Settings
@@ -62,22 +62,16 @@ def KNN(train_data, train_labs, test_data, test_labs):
 
     # In order to pretty print output
     print('KNN Accuracy', accuracy_score(predicted, test_labs)*100, '%')
-    
-    kneighbors = KNN.kneighbors(test_data[0], return_distance=False)
-    print('KNN Neighbors', kneighbors)
-    print(len(kneighbors))
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
 
+    utils.test_best_knn(KNN,train_data,train_labs,test_data,test_labs)
+
+    print("--- %s seconds ---" % (time.time() - start_time))
+    
+    confmatrix = confusion_matrix(predicted, test_labs)
+    plt.subplots(figsize=(6, 6))
+    sns.heatmap(confmatrix, annot=True, fmt=".1f", linewidths=1.5)
+    plt.savefig('pics/confusion_matrix.png')
+    
 
 def test_data():
 
@@ -92,34 +86,5 @@ def test_data():
         test_codes.flatten(1).detach().cpu().numpy(), test_labs)
 
 
-test_data()
+test_data() 
 
-
-
-
-    
-# # List Hyperparameters to tune
-# leaf_size = list(range(1, 2))
-# n_neighbors = list(range(180, 200))
-# p = [1, 2]
-# # convert to dictionary
-# hyperparameters = dict(leaf_size=leaf_size, n_neighbors=n_neighbors, p=p)
-# # Making model
-# clf = GridSearchCV(KNN, hyperparameters, cv=10)
-# best_model = clf.fit(train_data, train_labs)
-# # Best Hyperparameters Value
-# print('Best leaf_size:',
-#       best_model.best_estimator_.get_params()['leaf_size'])
-# print('Best p:', best_model.best_estimator_.get_params()['p'])
-# print('Best n_neighbors:',
-#       best_model.best_estimator_.get_params()['n_neighbors'])
-# # Predict testing set
-# y_pred = best_model.predict(test_data)
-# # Check performance using accuracy
-# print(accuracy_score(test_labs, y_pred))
-
-# print("--- %s seconds ---" % (time.time() - start_time))
-# confmatrix = confusion_matrix(predicted, test_labs)
-# plt.subplots(figsize=(6, 6))
-# sns.heatmap(confmatrix, annot=True, fmt=".1f", linewidths=1.5)
-# plt.savefig('pics/confusion_matrix.png')

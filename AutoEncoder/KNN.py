@@ -101,4 +101,4 @@ def train():
 train()
 
 # Save
-torch.save(model, 'Cif10.pth')
+torch.save(model, 'trained_model/ Cif10.pth')
