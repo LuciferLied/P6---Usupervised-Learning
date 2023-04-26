@@ -22,7 +22,7 @@ if torch.cuda.is_available():
     device = torch.device('cuda')
 else:
     print('Using CPU')
-    device = torch.device('cpu')
+device = torch.device('cpu')
 
 # Load model
 model = torch.load('Cif10.pth')
@@ -53,7 +53,6 @@ test_loader = data.DataLoader(test_set, batch_size=batch_size, shuffle=False)
 knn_test_loader = data.DataLoader(test_set, batch_size=5000, shuffle=False)
 
 images, labels = next(iter(train_loader))
-print(images.shape)
 
 def KNN(train_data,train_labs,test_data,test_labs):
     # Log time
@@ -64,8 +63,7 @@ def KNN(train_data,train_labs,test_data,test_labs):
     scaler = StandardScaler()
     train_data = scaler.fit_transform(train_data)
     test_data = scaler.fit_transform(test_data)
-    
-    
+        
     KNN.fit(train_data,train_labs)
     predicted = KNN.predict(test_data)
 
@@ -74,7 +72,7 @@ def KNN(train_data,train_labs,test_data,test_labs):
 
     # #List Hyperparameters to tune
     # leaf_size = list(range(1,2))
-    # n_neighbors = list(range(1,8))
+    # n_neighbors = list(range(150,200))
     # p=[1,2]
     # #convert to dictionary
     # hyperparameters = dict(leaf_size=leaf_size, n_neighbors=n_neighbors, p=p)
@@ -90,12 +88,11 @@ def KNN(train_data,train_labs,test_data,test_labs):
     # #Check performance using accuracy
     # print(accuracy_score(test_labs, y_pred))
     
-    print("--- %s seconds ---" % (time.time() - start_time))
-    # # confmatrix = confusion_matrix(predicted,test_labs)
-
+    # print("--- %s seconds ---" % (time.time() - start_time))
+    # confmatrix = confusion_matrix(predicted,test_labs)
     # plt.subplots(figsize=(6,6))
     # sns.heatmap(confmatrix,annot=True,fmt=".1f",linewidths=1.5)
-    # plt.savefig('confusion_matrix.png')
+    # plt.savefig('pics/confusion_matrix.png')
 
 def test_data():
 
@@ -103,6 +100,7 @@ def test_data():
     test_imgs , test_labs  = next(iter(knn_test_loader))
     
     train_codes, _ = model(train_imgs.to(device))
+    print('latent layer',train_codes.shape)
     test_codes, _  = model(test_imgs.to(device))
     
     KNN(train_codes.flatten(1).detach().cpu().numpy(), train_labs, test_codes.flatten(1).detach().cpu().numpy(), test_labs)

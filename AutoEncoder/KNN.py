@@ -20,7 +20,7 @@ else:
 # Settings
 setting = {
     'batch_size': 256,
-    'epochs': 5,
+    'epochs': 15,
     'lr': 0.001
 }
 
@@ -47,8 +47,8 @@ class CIFAR10Pair(CIFAR10):
 train_transform = transforms.Compose([
     transforms.RandomResizedCrop(32),
     transforms.RandomHorizontalFlip(p=0.5),
-    transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
-    transforms.RandomGrayscale(p=0.2),
+    # transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
+    # transforms.RandomGrayscale(p=0.2),
     transforms.ToTensor(),
     transforms.Normalize([0.4914, 0.4822, 0.4465], [0.2023, 0.1994, 0.2010])])
 
@@ -68,11 +68,11 @@ train_loader = data.DataLoader(train_set, batch_size=setting['batch_size'], shuf
 train_data = utils.CIFAR10Pair(root='data', train=True, transform=utils.train_transform, download=True)
 augmeted_loader = data.DataLoader(train_data, batch_size=setting['batch_size'], shuffle=True, pin_memory=True,drop_last=True)
 
-model = Model.simCLR()
+model = Model.SimModel()
 model.to(device)
 
 # Optimizer and loss function
-optimizer = torch.optim.Adam(model.parameters(), lr=setting['lr'],weight_decay=1e-5)
+optimizer = torch.optim.Adam(model.parameters(), lr=setting['lr'],weight_decay=1e-6)
 
 temperature = 0.5
 # Train
@@ -110,7 +110,7 @@ def train():
             
             total_num += setting['batch_size']
             total_loss += loss.item() * setting['batch_size']
-            train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch, setting['epochs'], total_loss / total_num))
+            train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch + 1, setting['epochs'], total_loss / total_num))
 
 train()
 
