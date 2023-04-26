@@ -1,12 +1,8 @@
 import torch
-import torch.nn as nn
 from torchvision import datasets, transforms
 from torchvision.transforms import ToTensor
 import torch.utils.data as data
-import numpy as np
-import matplotlib.pyplot as plt
 from util import Models as Model
-from util import utils
 from tqdm import tqdm
 
 # set device
@@ -28,7 +24,6 @@ from PIL import Image
 from torchvision import transforms
 from torchvision.datasets import CIFAR10
 
-
 class CIFAR10Pair(CIFAR10):
     def __getitem__(self, index):
         img, target = self.data[index], self.targets[index]
@@ -43,7 +38,7 @@ class CIFAR10Pair(CIFAR10):
 
         return pos_1, pos_2, target
 
-
+ 
 train_transform = transforms.Compose([
     transforms.RandomResizedCrop(32),
     transforms.RandomHorizontalFlip(p=0.5),
@@ -65,7 +60,7 @@ train_set = datasets.CIFAR10(
 )
 train_loader = data.DataLoader(train_set, batch_size=setting['batch_size'], shuffle=True)
 
-train_data = utils.CIFAR10Pair(root='data', train=True, transform=utils.train_transform, download=True)
+train_data = CIFAR10Pair(root='data', train=True, transform=train_transform, download=True)
 augmeted_loader = data.DataLoader(train_data, batch_size=setting['batch_size'], shuffle=True, pin_memory=True,drop_last=True)
 
 model = Model.SimModel()
