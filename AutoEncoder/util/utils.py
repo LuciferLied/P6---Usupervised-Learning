@@ -1,3 +1,4 @@
+import time
 import numpy as np
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import GridSearchCV
@@ -29,6 +30,8 @@ def retrieveInfo(kmeansLabels, train_target_numpyArray):
     return reference_labels
 
 def test_best_knn(KNN,train_data,train_labs,test_data,test_labs):
+    start_time = time.time()
+    
     print('Testing best KNN')
     # List Hyperparameters to tune
     leaf_size = list(range(1, 2))
@@ -49,3 +52,5 @@ def test_best_knn(KNN,train_data,train_labs,test_data,test_labs):
     y_pred = best_model.predict(test_data)
     # Check performance using accuracy
     print(accuracy_score(test_labs, y_pred))
+    print("--- %s seconds ---" % (time.time() - start_time))
+    

@@ -2,7 +2,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchvision.models.resnet import resnet18
+from torchvision.models.resnet import resnet18, resnet34, resnet50
 
 
 class AutoEncoder(nn.Module):
@@ -257,9 +257,9 @@ class simCLR(nn.Module):
         out = self.projection_head(codes)
         return F.normalize(codes,dim=1), F.normalize(out, dim=1)
     
-class SimModel(nn.Module):
+class Res18(nn.Module):
     def __init__(self, feature_dim):
-        super(SimModel, self).__init__()
+        super(Res18, self).__init__()
 
         self.encoder = []
         for name, module in resnet18().named_children():
@@ -272,6 +272,86 @@ class SimModel(nn.Module):
         # projection head
         self.g = nn.Sequential(
             nn.Linear(512, 512, bias=False),
+            nn.BatchNorm1d(512),
+            nn.ReLU(inplace=True),
+            nn.Linear(512, feature_dim, bias=True)
+        )
+
+    def forward(self, x):
+        x = self.encoder(x)
+        feature = torch.flatten(x, start_dim=1)
+        out = self.g(feature)
+        return F.normalize(feature, dim=-1), F.normalize(out, dim=-1)
+
+    
+class Res34(nn.Module):
+    def __init__(self, feature_dim):
+        super(Res34, self).__init__()
+
+        self.encoder = []
+        for name, module in resnet34().named_children():
+            if name == 'conv1':
+                module = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+            if not isinstance(module, nn.Linear) and not isinstance(module, nn.MaxPool2d):
+                self.encoder.append(module)
+        # encoder
+        self.encoder = nn.Sequential(*self.encoder)
+        # projection head
+        self.g = nn.Sequential(
+            nn.Linear(512, 512, bias=False),
+            nn.BatchNorm1d(512),
+            nn.ReLU(inplace=True),
+            nn.Linear(512, feature_dim, bias=True)
+        )
+
+    def forward(self, x):
+        x = self.encoder(x)
+        feature = torch.flatten(x, start_dim=1)
+        out = self.g(feature)
+        return F.normalize(feature, dim=-1), F.normalize(out, dim=-1)
+    
+    
+class Res50(nn.Module):
+    def __init__(self, feature_dim):
+        super(Res50, self).__init__()
+
+        self.encoder = []
+        for name, module in resnet50().named_children():
+            if name == 'conv1':
+                module = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+            if not isinstance(module, nn.Linear) and not isinstance(module, nn.MaxPool2d):
+                self.encoder.append(module)
+        # encoder
+        self.encoder = nn.Sequential(*self.encoder)
+        # projection head
+        self.g = nn.Sequential(
+            nn.Linear(2048, 512, bias=False),
+            nn.BatchNorm1d(512),
+            nn.ReLU(inplace=True),
+            nn.Linear(512, feature_dim, bias=True)
+        )
+
+    def forward(self, x):
+        x = self.encoder(x)
+        feature = torch.flatten(x, start_dim=1)
+        out = self.g(feature)
+        return F.normalize(feature, dim=-1), F.normalize(out, dim=-1)
+    
+class SimModel(nn.Module):
+    def __init__(self, feature_dim):
+        super(SimModel, self).__init__()
+
+        self.encoder = []
+        for name, module in resnet50().named_children():
+            if name == 'conv1':
+                module = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+            if not isinstance(module, nn.Linear) and not isinstance(module, nn.MaxPool2d):
+                self.encoder.append(module)
+        # encoder
+        self.encoder = nn.Sequential(*self.encoder)
+        # projection head
+        self.g = nn.Sequential(
+            nn.Linear(2048, 512, bias=False),
             nn.BatchNorm1d(512),
             nn.ReLU(inplace=True),
             nn.Linear(512, feature_dim, bias=True)
