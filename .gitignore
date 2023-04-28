@@ -188,3 +188,9 @@ AutoEncoder/data/stl10_binary/train_X.bin
 AutoEncoder/data/stl10_binary/train_y.bin
 AutoEncoder/data/stl10_binary/unlabeled_X.bin
 AutoEncoder/dataanalysis/macroComputer.xlsm
+data/cifar-10-batches-py/data_batch_1
+data/cifar-10-batches-py/test_batch
+data/cifar-10-batches-py/data_batch_5
+data/cifar-10-batches-py/data_batch_4
+data/cifar-10-batches-py/data_batch_3
+data/cifar-10-batches-py/data_batch_2
