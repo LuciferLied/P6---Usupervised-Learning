@@ -20,7 +20,7 @@ else:
 # Settings
 
 batch_size = 128
-epochs = 1
+epochs = 20
 lr = 0.001
 feature_dim = 128
 
@@ -57,7 +57,10 @@ model = Model.Res18(feature_dim)
 model.to(device)
 name = model.__class__.__name__
 
-print('running: ',name, 'on', device, 'with epochs:', epochs, ' and feature dim:', feature_dim)
+#Format print
+print('Running {} on {} with {} epochs and feature dim: {}'.format(name, device, epochs, feature_dim))
+
+
 # Optimizer and loss function
 optimizer = torch.optim.Adam(model.parameters(), lr=lr,weight_decay=1e-6)
 

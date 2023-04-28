@@ -258,7 +258,7 @@ class simCLR(nn.Module):
         return F.normalize(codes,dim=1), F.normalize(out, dim=1)
     
 class Res18(nn.Module):
-    def __init__(self, feature_dim):
+    def __init__(self, feature_dim=128):
         super(Res18, self).__init__()
 
         self.encoder = []

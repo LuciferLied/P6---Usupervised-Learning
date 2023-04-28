@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import warnings
 from tqdm import tqdm
+from util import Models as Model
 warnings.filterwarnings("ignore")
 
 start = time.time()
@@ -42,7 +43,7 @@ class Resnet18(nn.Module):
         super(Resnet18, self).__init__()
 
         # encoder
-        self.f = Res18().encoder
+        self.f = Model.Res18().encoder
         # classifier
         self.fc = nn.Linear(512, num_class, bias=True)
         self.model = torch.load(pretrained_path, map_location='cpu')
@@ -54,7 +55,7 @@ class Resnet18(nn.Module):
         return out
 
 # Optimizer and loss function
-model = Resnet18(num_class = 10, pretrained_path = 'penis')
+model = Resnet18(num_class = 10, pretrained_path = 'Res18_20_0.001.pth')
 # print(model)
 model.to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
