@@ -55,7 +55,7 @@ class Resnet18(nn.Module):
         return out
 
 # Optimizer and loss function
-model = Resnet18(num_class = 10, pretrained_path = 'Res18_20_0.001.pth')
+model = Resnet18(num_class = 10, pretrained_path = 'trained_models/Res18_20_0.001.pth')
 # print(model)
 model.to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
