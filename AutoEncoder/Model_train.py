@@ -21,8 +21,8 @@ lr = 0.001
 feature_dim = 128
 
 dataset = CIFAR10
-data_name = CIFAR10.__name__
-print('Dataset:', data_name)
+data_name = dataset.__name__
+
 
 class AUG_PAIR(dataset):
     def __getitem__(self, index):
@@ -50,14 +50,19 @@ train_data = AUG_PAIR(root='data', train=True, transform=train_transform, downlo
 augmeted_loader = data.DataLoader(train_data, batch_size=batch_size, shuffle=True, pin_memory=True,drop_last=True)
 
 load = True
-load_model = 'trained_models/Res18_CIFAR10_20_0.001.pth'
+load_model = 'trained_models/Res18_CIFAR10_30_0.001.pth'
 
 if load == True:
-    model = (torch.load(load_model))
-    pretrained_epochs = load_model[29:-10]
-    print(pretrained_epochs)
+    model = torch.load(load_model, map_location=torch.device(device))
+    temp = load_model.split('/')
+    vars = temp[1].split('_')
+    name = vars[0]
+    data_name = vars[1]
+    pretrained_epochs = vars[2]
     pretrained_epochs = int(pretrained_epochs)
-    print('Loaded pretrained model with epochs:', pretrained_epochs)
+    print('Model:', name,'pretrained with:', data_name, 'epochs:', pretrained_epochs, 'lr:', lr)
+    lr = vars[3].replace('.pth', '')
+    lr = float(lr)
 else:
     model = Model.Res18(feature_dim, data_name)
     pretrained_epochs = 0
@@ -66,10 +71,11 @@ model.to(device)
 name = model.__class__.__name__
 
 #Format print
-print('Training {} on {} with {} epochs and batch size: {}'.format(name, data_name, epochs, batch_size))
+print('Training {} on {}, with {} epochs and batch size: {} lr {}'.format(name, data_name, epochs, batch_size, lr))
 
 # Optimizer and loss function
-optimizer = torch.optim.Adam(model.parameters(), lr=lr,weight_decay=1e-6)
+# Weght decay  optional: , lr=lr,weight_decay=1e-6
+optimizer = torch.optim.Adam(model.parameters())
 
 temperature = 0.5
 
@@ -115,5 +121,4 @@ def train():
                 torch.save(model, 'trained_models/{}_{}_{}_{}.pth'.format(name, data_name, epoch + 1 + pretrained_epochs, lr))
 
 train()
-
 print('Finished Training')

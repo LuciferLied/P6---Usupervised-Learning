@@ -20,33 +20,59 @@ else:
     print('Using CPU')
     device = torch.device('cpu')
 
-# Settings
+load_model = 'trained_models/Res18_CIFAR10_30_0.001.pth'
+
+# Load model
+model = torch.load(load_model, map_location=torch.device(device))
+model.to(device)
+model.eval()
+
+temp = load_model.split('/')
+vars = temp[1].split('_')
+name = vars[0]
+data_name = vars[1]
+epochs = vars[2]
+epochs = int(epochs)
+lr = vars[3].replace('.pth', '')
+lr = float(lr)
 batch_size = 256
 
-# DataLoader
-train_set = datasets.CIFAR10(
-    root="data",
-    train=True,
-    download=True,
-    transform=ToTensor()
-)
+print('Model:', name,'Trained with dataset:', data_name, 'epochs:', epochs, 'lr:', lr)
 
-test_set = datasets.CIFAR10(
-    root="data",
-    train=False,
-    download=True,
-    transform=ToTensor()
-)
+if data_name == 'CIFAR10':
+    # DataLoader
+    train_set = datasets.CIFAR10(
+        root="data",
+        train=True,
+        download=True,
+        transform=ToTensor()
+    )
+
+    test_set = datasets.CIFAR10(
+        root="data",
+        train=False,
+        download=True,
+        transform=ToTensor()
+    )
+
+if data_name == 'MNIST':
+    # DataLoader
+    train_set = datasets.MNIST(
+        root="data",
+        train=True,
+        download=True,
+        transform=ToTensor()
+    )
+
+    test_set = datasets.MNIST(
+        root="data",
+        train=False,
+        download=True,
+        transform=ToTensor()
+    )
 
 train_loader = data.DataLoader(train_set, batch_size=batch_size, shuffle=False)
 test_loader = data.DataLoader(test_set, batch_size=batch_size, shuffle=False)
-
-# Load model
-model = torch.load('trained_models/Res18_CIFAR10_20_0.001.pth')
-model.to(device)
-model.eval()
-print('Model:', model.__class__.__name__)
-print('Dataset:', train_set.__class__.__name__)
 
 def KNN(train_data, train_labs, test_data, test_labs):
     # Log time
@@ -114,34 +140,3 @@ def test_knn():
     kmeans(train_codes,train_labs)
         
 test_knn()
-
-
-def better_knn(self, predictions):
-    # perform knn
-    correlation = torch.matmul(predictions, self.features.t())
-    sample_pred = torch.argmax(correlation, dim=1)
-    class_pred = torch.index_select(self.targets, 0, sample_pred)
-    return class_pred
-
-def mine_nearest_neighbors(self, topk, calculate_accuracy=True):
-    # mine the topk nearest neighbors for every sample
-    
-    features = self.features.cpu().numpy()
-    n, dim = features.shape[0], features.shape[1]
-    index = faiss.IndexFlatIP(dim)
-    index = faiss.index_cpu_to_all_gpus(index)
-    index.add(features)
-    distances, indices = index.search(features, topk+1) # Sample itself is included
-    
-    # evaluate 
-    if calculate_accuracy:
-        targets = self.targets.cpu().numpy()
-        neighbor_targets = np.take(targets, indices[:,1:], axis=0) # Exclude sample itself for eval
-        anchor_targets = np.repeat(targets.reshape(-1,1), topk, axis=1)
-        accuracy = np.mean(neighbor_targets == anchor_targets)
-        return indices, accuracy
-    
-    else:
-        return indices
-    
-# indices, acc = mine_nearest_neighbors(200)
