@@ -15,15 +15,16 @@ else:
     device = torch.device('cpu')
 
 # Settings
-
 batch_size = 128
-epochs = 30
+epochs = 10
 lr = 0.001
 feature_dim = 128
 
-dataset = 'CIFAR10'
+dataset = CIFAR10
+data_name = CIFAR10.__name__
+print('Dataset:', data_name)
 
-class AUG_PAIR(CIFAR10):
+class AUG_PAIR(dataset):
     def __getitem__(self, index):
         img, target = self.data[index], self.targets[index]
 
@@ -36,7 +37,6 @@ class AUG_PAIR(CIFAR10):
 
         return pos_1, pos_2, target
 
- 
 # set transformation option
 train_transform = transforms.Compose([
         transforms.ToPILImage(),
@@ -49,23 +49,24 @@ train_transform = transforms.Compose([
 train_data = AUG_PAIR(root='data', train=True, transform=train_transform, download=True)
 augmeted_loader = data.DataLoader(train_data, batch_size=batch_size, shuffle=True, pin_memory=True,drop_last=True)
 
-load = False
-load_model = 'trained_models/Res18_30_0.001_65.pth'
+load = True
+load_model = 'trained_models/Res18_CIFAR10_20_0.001.pth'
 
 if load == True:
     model = (torch.load(load_model))
-    pretrained_epochs = load_model[21:-13]
+    pretrained_epochs = load_model[29:-10]
+    print(pretrained_epochs)
     pretrained_epochs = int(pretrained_epochs)
     print('Loaded pretrained model with epochs:', pretrained_epochs)
 else:
-    model = Model.Res18(feature_dim)
+    model = Model.Res18(feature_dim, data_name)
     pretrained_epochs = 0
 
 model.to(device)
 name = model.__class__.__name__
 
 #Format print
-print('Training {} on {} with {} epochs and batch size: {}'.format(name, dataset, epochs, batch_size))
+print('Training {} on {} with {} epochs and batch size: {}'.format(name, data_name, epochs, batch_size))
 
 # Optimizer and loss function
 optimizer = torch.optim.Adam(model.parameters(), lr=lr,weight_decay=1e-6)
@@ -109,13 +110,10 @@ def train():
             total_loss += loss.item() * batch_size
             train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch + pretrained_epochs + 1, epochs + pretrained_epochs, total_loss / total_num))
             
-        if epoch%10 == 0 and epoch != 0:
-                print('Saving model as: ', 'trained_models/temp_{}_{}_{}_{}.pth'.format(name, dataset, epoch + pretrained_epochs, lr))
-                torch.save(model, 'trained_models/temp_{}_{}_{}_{}.pth'.format(name, dataset, epoch + pretrained_epochs, lr))
+        if (epoch%10 == 0 and epoch != 0) or epoch == epochs - 1:
+                print('Saving model as: ', 'trained_models/{}_{}_{}_{}.pth'.format(name, data_name, epoch + 1 + pretrained_epochs, lr))
+                torch.save(model, 'trained_models/{}_{}_{}_{}.pth'.format(name, data_name, epoch + 1 + pretrained_epochs, lr))
 
 train()
 
 print('Finished Training')
-print('Saving model as: ', 'trained_models/{}_{}_{}.pth'.format(name, dataset, epochs + pretrained_epochs, lr))
-# Save
-torch.save(model, 'trained_models/{}_{}_{}_{}.pth'.format(name, dataset, epochs + pretrained_epochs, lr))

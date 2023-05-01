@@ -20,12 +20,6 @@ else:
     print('Using CPU')
     device = torch.device('cpu')
 
-# Load model
-model = torch.load('trained_models/temp_Res18_30_0.001.pth')
-model.to(device)
-model.eval()
-print('Model:', model.__class__.__name__)
-
 # Settings
 batch_size = 256
 
@@ -46,6 +40,13 @@ test_set = datasets.CIFAR10(
 
 train_loader = data.DataLoader(train_set, batch_size=batch_size, shuffle=False)
 test_loader = data.DataLoader(test_set, batch_size=batch_size, shuffle=False)
+
+# Load model
+model = torch.load('trained_models/Res18_CIFAR10_20_0.001.pth')
+model.to(device)
+model.eval()
+print('Model:', model.__class__.__name__)
+print('Dataset:', train_set.__class__.__name__)
 
 def KNN(train_data, train_labs, test_data, test_labs):
     # Log time
@@ -85,7 +86,6 @@ def kmeans(train_codes,train_labs):
     accuracy = round(accuracy * 100,2)
     print('Kmeans Accuracy', accuracy, '%')
 
-
 def test_knn():
     with torch.no_grad():
 
@@ -98,14 +98,14 @@ def test_knn():
             codes, _ = model(pics.to(device))
             train_codes = torch.cat((train_codes, codes.flatten(1).cpu()), 0)
             train_labs = torch.cat((train_labs, labels), 0)
-            if len(train_codes) > 10000:
+            if len(train_codes) > 9000:
                 break
 
         for pics,labels in test_loader:
             codes, _ = model(pics.to(device))
             test_codes = torch.cat((test_codes, codes.flatten(1).cpu()), 0)
             test_labs = torch.cat((test_labs, labels), 0)
-            if len(test_codes) > 10000:
+            if len(test_codes) > 9000:
                 break
         
         print('train_codes',train_codes.shape)

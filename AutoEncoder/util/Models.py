@@ -225,15 +225,23 @@ class simCLR(nn.Module):
         return F.normalize(codes,dim=1), F.normalize(out, dim=1)
     
 class Res18(nn.Module):
-    def __init__(self, feature_dim=128):
+    def __init__(self, feature_dim=128,name=''):
         super(Res18, self).__init__()
-
+        self.name = name
         self.encoder = []
-        for name, module in resnet18().named_children():
-            if name == 'conv1':
-                module = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
-            if not isinstance(module, nn.Linear) and not isinstance(module, nn.MaxPool2d):
-                self.encoder.append(module)
+        if name == 'CIFAR10':
+            for name, module in resnet18().named_children():
+                if name == 'conv1':
+                    module = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+                if not isinstance(module, nn.Linear) and not isinstance(module, nn.MaxPool2d):
+                    self.encoder.append(module)
+        if name == 'MNIST':
+            for name, module in resnet18().named_children():
+                if name == 'conv1':
+                    module = nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1, bias=False)
+                if not isinstance(module, nn.Linear) and not isinstance(module, nn.MaxPool2d):
+                    self.encoder.append(module)
+                    
         # encoder
         self.encoder = nn.Sequential(*self.encoder)
         # projection head
