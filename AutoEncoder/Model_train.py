@@ -1,17 +1,14 @@
 import torch
-from torchvision import datasets, transforms
-from torchvision.transforms import ToTensor
 import torch.utils.data as data
-from util import Models as Model
-from tqdm import tqdm
-from PIL import Image
 from torchvision import transforms
-import torch.nn as nn
 from torchvision.datasets import CIFAR10
+from tqdm import tqdm
+from util import Models as Model
 
 # set device
 if torch.cuda.is_available():
     print('Using GPU')
+    dtype = torch.float32
     device = torch.device('cuda')
 else:
     print('Using CPU')
@@ -20,15 +17,15 @@ else:
 # Settings
 
 batch_size = 128
-epochs = 20
+epochs = 30
 lr = 0.001
 feature_dim = 128
 
+dataset = 'CIFAR10'
 
-class CIFAR10Pair(CIFAR10):
+class AUG_PAIR(CIFAR10):
     def __getitem__(self, index):
         img, target = self.data[index], self.targets[index]
-        img = Image.fromarray(img)
 
         if self.transform is not None:
             pos_1 = self.transform(img)
@@ -40,31 +37,41 @@ class CIFAR10Pair(CIFAR10):
         return pos_1, pos_2, target
 
  
+# set transformation option
 train_transform = transforms.Compose([
-    transforms.RandomResizedCrop(32),
-    transforms.RandomHorizontalFlip(p=0.5),
-    # transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
-    # transforms.RandomGrayscale(p=0.2),
-    transforms.ToTensor(),
-    transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
-])
+        transforms.ToPILImage(),
+        transforms.RandomAffine(degrees = 30),
+        transforms.RandomPerspective(),
+        transforms.ToTensor(),
+        transforms.Normalize(0.5, 0.5)])
 
 
-train_data = CIFAR10Pair(root='data', train=True, transform=train_transform, download=True)
+train_data = AUG_PAIR(root='data', train=True, transform=train_transform, download=True)
 augmeted_loader = data.DataLoader(train_data, batch_size=batch_size, shuffle=True, pin_memory=True,drop_last=True)
 
-model = Model.Res18(feature_dim)
+load = False
+load_model = 'trained_models/Res18_30_0.001_65.pth'
+
+if load == True:
+    model = (torch.load(load_model))
+    pretrained_epochs = load_model[21:-13]
+    pretrained_epochs = int(pretrained_epochs)
+    print('Loaded pretrained model with epochs:', pretrained_epochs)
+else:
+    model = Model.Res18(feature_dim)
+    pretrained_epochs = 0
+
 model.to(device)
 name = model.__class__.__name__
 
 #Format print
-print('Running {} on {} with {} epochs and feature dim: {}'.format(name, device, epochs, feature_dim))
-
+print('Training {} on {} with {} epochs and batch size: {}'.format(name, dataset, epochs, batch_size))
 
 # Optimizer and loss function
 optimizer = torch.optim.Adam(model.parameters(), lr=lr,weight_decay=1e-6)
 
 temperature = 0.5
+
 # Train
 def train():
     for epoch in range(epochs):
@@ -100,11 +107,15 @@ def train():
             
             total_num += batch_size
             total_loss += loss.item() * batch_size
-            train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch + 1, epochs, total_loss / total_num))
+            train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch + pretrained_epochs + 1, epochs + pretrained_epochs, total_loss / total_num))
+            
+        if epoch%10 == 0 and epoch != 0:
+                print('Saving model as: ', 'trained_models/temp_{}_{}_{}_{}.pth'.format(name, dataset, epoch + pretrained_epochs, lr))
+                torch.save(model, 'trained_models/temp_{}_{}_{}_{}.pth'.format(name, dataset, epoch + pretrained_epochs, lr))
 
 train()
 
 print('Finished Training')
-print('Saving model as: ', 'trained_models/{}_{}_{}.pth'.format(name, epochs, lr))
+print('Saving model as: ', 'trained_models/{}_{}_{}.pth'.format(name, dataset, epochs + pretrained_epochs, lr))
 # Save
-torch.save(model, 'trained_models/{}_{}_{}.pth'.format(name, epochs, lr))
+torch.save(model, 'trained_models/{}_{}_{}_{}.pth'.format(name, dataset, epochs + pretrained_epochs, lr))

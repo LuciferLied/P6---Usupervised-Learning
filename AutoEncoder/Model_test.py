@@ -1,30 +1,30 @@
-import numpy as np
-from sklearn.cluster import KMeans
 import torch
-from torchsummary import summary
-from torchvision.transforms import ToTensor
 import torch.utils.data as data
+from torchvision import datasets
+from torchvision.transforms import ToTensor
+from sklearn.cluster import KMeans
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.preprocessing import StandardScaler
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
-from torchvision import datasets, transforms
 from util import utils
-import time
 
 # set device
 if torch.cuda.is_available():
     print('Using GPU')
+    dtype = torch.float32
     device = torch.device('cuda')
 else:
     print('Using CPU')
     device = torch.device('cpu')
 
 # Load model
-model = torch.load('trained_models/Res181.pth')
+model = torch.load('trained_models/temp_Res18_30_0.001.pth')
 model.to(device)
 model.eval()
+print('Model:', model.__class__.__name__)
 
 # Settings
 batch_size = 256
@@ -50,7 +50,7 @@ test_loader = data.DataLoader(test_set, batch_size=batch_size, shuffle=False)
 def KNN(train_data, train_labs, test_data, test_labs):
     # Log time
 
-    KNN = KNeighborsClassifier(n_neighbors=150)
+    KNN = KNeighborsClassifier(n_neighbors=200)
 
     scaler = StandardScaler()
     train_data = scaler.fit_transform(train_data)
@@ -98,14 +98,14 @@ def test_knn():
             codes, _ = model(pics.to(device))
             train_codes = torch.cat((train_codes, codes.flatten(1).cpu()), 0)
             train_labs = torch.cat((train_labs, labels), 0)
-            if len(train_codes) > 5000:
+            if len(train_codes) > 10000:
                 break
 
         for pics,labels in test_loader:
             codes, _ = model(pics.to(device))
             test_codes = torch.cat((test_codes, codes.flatten(1).cpu()), 0)
             test_labs = torch.cat((test_labs, labels), 0)
-            if len(test_codes) > 5000:
+            if len(test_codes) > 10000:
                 break
         
         print('train_codes',train_codes.shape)
@@ -115,3 +115,33 @@ def test_knn():
         
 test_knn()
 
+
+def better_knn(self, predictions):
+    # perform knn
+    correlation = torch.matmul(predictions, self.features.t())
+    sample_pred = torch.argmax(correlation, dim=1)
+    class_pred = torch.index_select(self.targets, 0, sample_pred)
+    return class_pred
+
+def mine_nearest_neighbors(self, topk, calculate_accuracy=True):
+    # mine the topk nearest neighbors for every sample
+    
+    features = self.features.cpu().numpy()
+    n, dim = features.shape[0], features.shape[1]
+    index = faiss.IndexFlatIP(dim)
+    index = faiss.index_cpu_to_all_gpus(index)
+    index.add(features)
+    distances, indices = index.search(features, topk+1) # Sample itself is included
+    
+    # evaluate 
+    if calculate_accuracy:
+        targets = self.targets.cpu().numpy()
+        neighbor_targets = np.take(targets, indices[:,1:], axis=0) # Exclude sample itself for eval
+        anchor_targets = np.repeat(targets.reshape(-1,1), topk, axis=1)
+        accuracy = np.mean(neighbor_targets == anchor_targets)
+        return indices, accuracy
+    
+    else:
+        return indices
+    
+# indices, acc = mine_nearest_neighbors(200)

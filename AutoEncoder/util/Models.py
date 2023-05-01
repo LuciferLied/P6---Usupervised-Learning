@@ -171,7 +171,6 @@ class LinearCifar(nn.Module):
         
         return codes, x
 
-# Make autoencoder for cifar 10
 class Cifar_AutoEncoder(nn.Module):
     def __init__(self):
         super(Cifar_AutoEncoder, self).__init__()
@@ -208,44 +207,12 @@ class Cifar_AutoEncoder(nn.Module):
         
         return codes, decoded
 
-# Make autoencoder for cifar 10
-class Cif10(nn.Module):
-    def __init__(self):
-        super().__init__()
-        
-        self.encoder = nn.Sequential(
-            nn.Conv2d(3, 12, 4, stride=2, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(12, 24, 4, stride=2, padding=1),
-            nn.BatchNorm2d(24),
-            nn.ReLU(),
-            nn.Conv2d(24, 48, 4, stride=2, padding=1),
-            nn.ReLU()
-        )
-        self.decoder = nn.Sequential(
-            nn.ConvTranspose2d(48, 24, 4, stride=2, padding=1),
-            nn.ReLU(),
-            nn.ConvTranspose2d(24, 12, 4,stride=2, padding=1),
-            nn.BatchNorm2d(12),
-            nn.ReLU(),
-            nn.ConvTranspose2d(12, 3, 4,stride=2, padding=1),
-            nn.Sigmoid()
-        )
-        
-    def forward(self, x):
-        x = self.encoder(x)
-        codes = x
-        x = self.decoder(x)
-        
-        return F.normalize(codes,dim=1), F.normalize(x, dim=1)
-
-
 class simCLR(nn.Module):
     def __init__(self):
         super().__init__()
         self.base_encoder = resnet18()
         self.projection_head = nn.Sequential(
-            nn.LazyLinear(512),
+            nn.LazyLinear(512,bias=False),
             nn.BatchNorm1d(512),
             nn.ReLU(inplace=True),
             nn.Linear(512, 128),
