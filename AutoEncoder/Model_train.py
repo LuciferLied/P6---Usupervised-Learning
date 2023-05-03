@@ -53,9 +53,9 @@ train_data = AUG_PAIR(root='data', train=True, transform=train_transform, downlo
 augmeted_loader = data.DataLoader(train_data, batch_size=batch_size, shuffle=True, pin_memory=True,drop_last=True)
 
 load = False
-load_model = 'trained_models/Res18_CIFAR10_30_0.001.pth'
 
 if load == True:
+    load_model = 'trained_models/Res18_CIFAR10_30_0.001.pth'
     model = torch.load(load_model, map_location=torch.device(device))
     temp = load_model.split('/')
     vars = temp[1].split('_')
