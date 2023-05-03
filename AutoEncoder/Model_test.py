@@ -21,7 +21,7 @@ else:
     print('Using CPU')
     device = torch.device('cpu')
 
-load_model = 'trained_models/simCLRMobile_CIFAR10_10_0.001.pth'
+load_model = 'trained_models/simCLRSqueeze_CIFAR10_19_0.001.pth'
 
 # Load model
 model = torch.load(load_model, map_location=torch.device(device))
@@ -105,9 +105,11 @@ def KNN(train_data, train_labs, test_data, test_labs):
     # utils.test_best_knn(KNN,train_data,train_labs,test_data,test_labs)
     
     confmatrix = confusion_matrix(predicted, test_labs)
-    plt.subplots(figsize=(6, 6))
-
-    sns.heatmap(confmatrix, annot=True, fmt=".1f", linewidths=1.5)
+    fig, ax = plt.subplots(figsize=(6, 6))
+    ax.xaxis.tick_top()
+    #sns.heatmap(confmatrix, annot=True, fmt=".1f", linewidths=1.5)
+    sns.heatmap(confmatrix, annot=True, fmt=".1f", linewidths=1.5, xticklabels=classes, yticklabels=classes)
+    plt.yticks(rotation=0)
     plt.savefig('pics/confusion_matrix.png')
 
 
