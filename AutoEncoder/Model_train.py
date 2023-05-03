@@ -1,4 +1,6 @@
+from matplotlib import pyplot as plt
 import torch
+import torch.nn as nn
 import torch.utils.data as data
 from torchsummary import summary
 from torchvision import transforms
@@ -52,6 +54,11 @@ train_transform = transforms.Compose([
 train_data = AUG_PAIR(root='data', train=True, transform=train_transform, download=True)
 augmeted_loader = data.DataLoader(train_data, batch_size=batch_size, shuffle=True, pin_memory=True,drop_last=True)
 
+train_data[1][0]
+
+plt.imshow(train_data[1][0].cpu().squeeze().detach().numpy().transpose(1, 2, 0))
+plt.savefig('pics/reconstructed.png')
+
 load = False
 
 if load == True:
@@ -67,7 +74,7 @@ if load == True:
     lr = vars[3].replace('.pth', '')
     lr = float(lr)
 else:
-    model = Model.simCLRSqueeze()
+    model = Model.Res18()
     pretrained_epochs = 0
 
 model.to(device)
@@ -81,6 +88,25 @@ optimizer = torch.optim.Adam(model.parameters(), lr=lr,weight_decay=1e-6)
 
 temperature = 0.5
 
+def contrastive_loss(out_1, out_2, temperature):
+    out_1 = torch.flatten(out_1, start_dim=1)
+    out_2 = torch.flatten(out_2, start_dim=1)
+
+    out = torch.cat([out_1, out_2], dim=0)
+    # [2*B, 2*B]
+    sim_matrix = torch.exp(torch.mm(out, out.t().contiguous()) / temperature)
+    mask = (torch.ones_like(sim_matrix) - torch.eye(2 * batch_size, device=sim_matrix.device)).bool()
+    # [2*B, 2*B-1]
+    sim_matrix = sim_matrix.masked_select(mask).view(2 * batch_size, -1)
+
+    # compute loss
+    pos_sim = torch.exp(torch.sum(out_1 * out_2, dim=-1) / temperature)
+    # [2*B]
+    pos_sim = torch.cat([pos_sim, pos_sim], dim=0)
+    loss = (- torch.log(pos_sim / sim_matrix.sum(dim=-1))).mean()
+
+    return loss
+
 # Train
 def train():
     for epoch in range(epochs):
@@ -93,21 +119,7 @@ def train():
             _, out_1 = model(pics1)
             _, out_2 = model(pics2)
             
-            out_1 = torch.flatten(out_1, start_dim=1)
-            out_2 = torch.flatten(out_2, start_dim=1)
-
-            out = torch.cat([out_1, out_2], dim=0)
-            # [2*B, 2*B]
-            sim_matrix = torch.exp(torch.mm(out, out.t().contiguous()) / temperature)
-            mask = (torch.ones_like(sim_matrix) - torch.eye(2 * batch_size, device=sim_matrix.device)).bool()
-            # [2*B, 2*B-1]
-            sim_matrix = sim_matrix.masked_select(mask).view(2 * batch_size, -1)
-
-            # compute loss
-            pos_sim = torch.exp(torch.sum(out_1 * out_2, dim=-1) / temperature)
-            # [2*B]
-            pos_sim = torch.cat([pos_sim, pos_sim], dim=0)
-            loss = (- torch.log(pos_sim / sim_matrix.sum(dim=-1))).mean()
+            loss = contrastive_loss(out_1, out_2, temperature)
             
             # Backward
             optimizer.zero_grad()
@@ -119,8 +131,9 @@ def train():
             train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch + pretrained_epochs + 1, epochs + pretrained_epochs, total_loss / total_num))
             
         if ((epoch + 1)%10 == 0 and epoch != 0) or epoch == epochs - 1:
-                print('Saving model as: ', 'trained_models/{}_{}_{}_{}.pth'.format(name, data_name, epoch + pretrained_epochs, lr))
-                torch.save(model, 'trained_models/{}_{}_{}_{}.pth'.format(name, data_name, epoch + pretrained_epochs, lr))
+                print('Saving model as: ', 'trained_models/{}_{}_{}_{}.pth'.format(name, data_name, epoch + 1 + pretrained_epochs, lr))
+                torch.save(model, 'trained_models/{}_{}_{}_{}.pth'.format(name, data_name, epoch + 1 + pretrained_epochs, lr))
 
 train()
+
 print('Finished Training')

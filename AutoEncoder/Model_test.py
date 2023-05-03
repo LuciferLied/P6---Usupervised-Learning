@@ -21,7 +21,7 @@ else:
     print('Using CPU')
     device = torch.device('cpu')
 
-load_model = 'trained_models/simCLRSqueeze_CIFAR10_19_0.001.pth'
+load_model = 'trained_models/Res18_CIFAR10_30_0.001.pth'
 
 # Load model
 model = torch.load(load_model, map_location=torch.device(device))
@@ -89,9 +89,8 @@ def num_to_label(num):
 
 
 def KNN(train_data, train_labs, test_data, test_labs):
-    # Log time
-
-    KNN = KNeighborsClassifier(n_neighbors=200)
+    
+    KNN = KNeighborsClassifier(n_neighbors=20)
 
     scaler = StandardScaler()
     train_data = scaler.fit_transform(train_data)
@@ -113,8 +112,10 @@ def KNN(train_data, train_labs, test_data, test_labs):
     plt.savefig('pics/confusion_matrix.png')
 
 
-def kmeans(train_codes,train_labs):
-    kmeans = KMeans(n_clusters=50, n_init='auto').fit(train_codes)
+def kmeans(train_data,train_labs):
+    scaler = StandardScaler()
+    train_data = scaler.fit_transform(train_data)
+    kmeans = KMeans(n_clusters=50, n_init='auto').fit(train_data)
     
     labels = train_labs
     # cast to int 
