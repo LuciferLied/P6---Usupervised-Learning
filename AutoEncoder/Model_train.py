@@ -1,7 +1,8 @@
 import torch
 import torch.utils.data as data
+from torchsummary import summary
 from torchvision import transforms
-from torchvision.datasets import CIFAR10
+from torchvision.datasets import CIFAR10, MNIST
 from tqdm import tqdm
 from util import Models as Model
 
@@ -15,8 +16,8 @@ else:
     device = torch.device('cpu')
 
 # Settings
-batch_size = 128
-epochs = 10
+batch_size = 256
+epochs = 30
 lr = 0.001
 feature_dim = 128
 
@@ -37,19 +38,21 @@ class AUG_PAIR(dataset):
 
         return pos_1, pos_2, target
 
-# set transformation option
 train_transform = transforms.Compose([
-        transforms.ToPILImage(),
-        transforms.RandomAffine(degrees = 30),
-        transforms.RandomPerspective(),
-        transforms.ToTensor(),
-        transforms.Normalize(0.5, 0.5)])
+    transforms.ToPILImage(),
+    transforms.RandomResizedCrop(32),
+    transforms.RandomHorizontalFlip(p=0.5),
+    transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
+    transforms.RandomGrayscale(p=0.2),
+    transforms.ToTensor(),
+    transforms.Normalize([0.485, 0.456, 0.406],[0.229, 0.224, 0.225])
+])
 
 
 train_data = AUG_PAIR(root='data', train=True, transform=train_transform, download=True)
 augmeted_loader = data.DataLoader(train_data, batch_size=batch_size, shuffle=True, pin_memory=True,drop_last=True)
 
-load = True
+load = False
 load_model = 'trained_models/Res18_CIFAR10_30_0.001.pth'
 
 if load == True:
@@ -64,7 +67,7 @@ if load == True:
     lr = vars[3].replace('.pth', '')
     lr = float(lr)
 else:
-    model = Model.Res18(feature_dim, data_name)
+    model = Model.simCLRSqueeze()
     pretrained_epochs = 0
 
 model.to(device)
@@ -74,8 +77,7 @@ name = model.__class__.__name__
 print('Training {} on {}, with {} epochs and batch size: {} lr {}'.format(name, data_name, epochs, batch_size, lr))
 
 # Optimizer and loss function
-# Weght decay  optional: , lr=lr,weight_decay=1e-6
-optimizer = torch.optim.Adam(model.parameters())
+optimizer = torch.optim.Adam(model.parameters(), lr=lr,weight_decay=1e-6)
 
 temperature = 0.5
 
@@ -116,9 +118,9 @@ def train():
             total_loss += loss.item() * batch_size
             train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch + pretrained_epochs + 1, epochs + pretrained_epochs, total_loss / total_num))
             
-        if (epoch%10 == 0 and epoch != 0) or epoch == epochs - 1:
-                print('Saving model as: ', 'trained_models/{}_{}_{}_{}.pth'.format(name, data_name, epoch + 1 + pretrained_epochs, lr))
-                torch.save(model, 'trained_models/{}_{}_{}_{}.pth'.format(name, data_name, epoch + 1 + pretrained_epochs, lr))
+        if ((epoch + 1)%10 == 0 and epoch != 0) or epoch == epochs - 1:
+                print('Saving model as: ', 'trained_models/{}_{}_{}_{}.pth'.format(name, data_name, epoch + pretrained_epochs, lr))
+                torch.save(model, 'trained_models/{}_{}_{}_{}.pth'.format(name, data_name, epoch + pretrained_epochs, lr))
 
 train()
 print('Finished Training')

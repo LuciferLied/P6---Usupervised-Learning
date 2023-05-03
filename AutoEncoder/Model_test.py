@@ -1,6 +1,7 @@
 import torch
 import torch.utils.data as data
 from torchvision import datasets
+from torchvision import transforms
 from torchvision.transforms import ToTensor
 from sklearn.cluster import KMeans
 from sklearn.neighbors import KNeighborsClassifier
@@ -20,7 +21,7 @@ else:
     print('Using CPU')
     device = torch.device('cpu')
 
-load_model = 'trained_models/Res18_CIFAR10_30_0.001.pth'
+load_model = 'trained_models/simCLRMobile_CIFAR10_10_0.001.pth'
 
 # Load model
 model = torch.load(load_model, map_location=torch.device(device))
@@ -39,20 +40,25 @@ batch_size = 256
 
 print('Model:', name,'Trained with dataset:', data_name, 'epochs:', epochs, 'lr:', lr)
 
+test_transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize([0.485, 0.456, 0.406],[0.229, 0.224, 0.225])
+])
+
 if data_name == 'CIFAR10':
     # DataLoader
     train_set = datasets.CIFAR10(
         root="data",
         train=True,
         download=True,
-        transform=ToTensor()
+        transform=test_transform
     )
 
     test_set = datasets.CIFAR10(
         root="data",
         train=False,
         download=True,
-        transform=ToTensor()
+        transform=test_transform
     )
 
 if data_name == 'MNIST':
@@ -61,18 +67,26 @@ if data_name == 'MNIST':
         root="data",
         train=True,
         download=True,
-        transform=ToTensor()
+        transform=test_transform
     )
 
     test_set = datasets.MNIST(
         root="data",
         train=False,
         download=True,
-        transform=ToTensor()
+        transform=test_transform
     )
+
 
 train_loader = data.DataLoader(train_set, batch_size=batch_size, shuffle=False)
 test_loader = data.DataLoader(test_set, batch_size=batch_size, shuffle=False)
+
+classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+
+# Turn numbers into labels
+def num_to_label(num):
+    return classes[num]
+
 
 def KNN(train_data, train_labs, test_data, test_labs):
     # Log time
@@ -85,13 +99,14 @@ def KNN(train_data, train_labs, test_data, test_labs):
 
     KNN.fit(train_data, train_labs)
     predicted = KNN.predict(test_data)
-
+    
     # In order to pretty print output
     print('KNN Accuracy', accuracy_score(predicted, test_labs)*100, '%')
     # utils.test_best_knn(KNN,train_data,train_labs,test_data,test_labs)
     
     confmatrix = confusion_matrix(predicted, test_labs)
     plt.subplots(figsize=(6, 6))
+
     sns.heatmap(confmatrix, annot=True, fmt=".1f", linewidths=1.5)
     plt.savefig('pics/confusion_matrix.png')
 
