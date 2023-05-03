@@ -106,7 +106,6 @@ def KNN(train_data, train_labs, test_data, test_labs):
     confmatrix = confusion_matrix(predicted, test_labs)
     fig, ax = plt.subplots(figsize=(6, 6))
     ax.xaxis.tick_top()
-    #sns.heatmap(confmatrix, annot=True, fmt=".1f", linewidths=1.5)
     sns.heatmap(confmatrix, annot=True, fmt=".1f", linewidths=1.5, annot_kws={'size': 8}, xticklabels=classes, yticklabels=classes)
     plt.yticks(rotation=0)
     plt.savefig('pics/confusion_matrix.png')
