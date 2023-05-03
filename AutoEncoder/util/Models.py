@@ -67,112 +67,6 @@ class Smol_AutoEncoder(nn.Module):
         
         return codes, decoded
 
-class Auto_CNN(nn.Module):
-    def __init__(self):
-        super(Auto_CNN, self).__init__()
-        
-        # Input: (1 channel, 28x28 pixels) = 784
-        # Encoder
-        self.l1 = nn.LazyLinear(256)
-        self.l2 = nn.LazyLinear(144)
-        self.con1 = nn.LazyConv2d(6, 3)
-        self.con2 = nn.LazyConv2d(4, 3)
-        self.pool = nn.MaxPool2d(2, 2)
-        
-        # Decoder
-        self.t_con1 = nn.LazyConvTranspose2d(6, 4, stride=2)
-        self.t_con2 = nn.LazyConvTranspose2d(1, 4)
-        self.t_l1 = nn.LazyLinear(256)
-        self.t_l2 = nn.LazyLinear(784)
-        
-    def forward(self, x):
-        # Encoder
-        x = torch.relu(self.l1(x))
-        x = torch.relu(self.l2(x))
-        x = x.view(-1, 1, 12, 12)
-        x = torch.relu(self.con1(x))
-        x = self.pool(x)
-        x = torch.sigmoid(self.con2(x))
-        codes = x
-        
-        # Decoder
-        x = torch.relu(self.t_con1(x))
-        x = torch.relu(self.t_con2(x))
-        x = torch.flatten(x, 2)
-        x = torch.relu(self.t_l1(x))
-        x = torch.sigmoid(self.t_l2(x))
-        
-        return codes, x
-
-class Cifar(nn.Module):
-    def __init__(self):
-        super(Cifar, self).__init__()
-        
-        # Encoder
-        self.l1 = nn.LazyLinear(2000)
-        self.l2 = nn.LazyLinear(900)
-        self.con1 = nn.LazyConv2d(5, 3)
-        self.con2 = nn.LazyConv2d(3, 3)
-        
-        # Decoder
-        self.t_con1 = nn.LazyConvTranspose2d(4, 3)
-        self.t_con2 = nn.LazyConvTranspose2d(1, 3)
-        self.t_l1 = nn.LazyLinear(2000)
-        self.t_l2 = nn.LazyLinear(3072)
-        
-    def forward(self, x):
-        # Encoder
-        x = torch.flatten(x, 1)
-        x = torch.relu(self.l1(x))
-        x = torch.relu(self.l2(x))
-        x = x.view(-1, 1, 30, 30)
-        x = torch.relu(self.con1(x))
-        x = self.pool(x)
-        x = torch.relu(self.con2(x))
-
-        codes = x
-        
-        # Decoder
-        x = torch.relu(self.t_con1(x))
-        x = torch.relu(self.t_con2(x))
-        x = torch.flatten(x, 2)
-        x = torch.relu(self.t_l1(x))
-        x = torch.sigmoid(self.t_l2(x))
-        x = x.view(-1, 3, 32, 32)
-        
-        return codes, x
-
-class LinearCifar(nn.Module):
-    def __init__(self):
-        super(LinearCifar, self).__init__()
-        
-        # Encoder
-        self.l1 = nn.LazyLinear(2000)
-        self.l2 = nn.LazyLinear(1300)
-        self.l3 = nn.LazyLinear(800)
-        
-        # Decoder
-        self.t_l1 = nn.LazyLinear(1300)
-        self.t_l2 = nn.LazyLinear(2000)
-        self.t_l3 = nn.LazyLinear(3072)
-        
-    def forward(self, x):
-        # Encoder
-        x = torch.flatten(x, 1)
-        x = torch.relu(self.l1(x))
-        # x = torch.relu(self.l2(x))
-        x = torch.relu(self.l3(x))
-
-        codes = x
-        
-        # Decoder
-        # x = torch.relu(self.t_l1(x))
-        x = torch.relu(self.t_l2(x))
-        x = torch.sigmoid(self.t_l3(x))
-        x = x.view(-1, 3, 32, 32)
-        
-        return codes, x
-
 class Cifar_AutoEncoder(nn.Module):
     def __init__(self):
         super(Cifar_AutoEncoder, self).__init__()
@@ -209,23 +103,6 @@ class Cifar_AutoEncoder(nn.Module):
         
         return codes, decoded
 
-class simCLR(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.base_encoder = resnet18()
-        self.projection_head = nn.Sequential(
-            nn.LazyLinear(512,bias=False),
-            nn.BatchNorm1d(512),
-            nn.ReLU(inplace=True),
-            nn.Linear(512, 128),
-        )
-        
-    def forward(self, x):
-        x = self.base_encoder(x)
-        codes = torch.flatten(x, 1)
-        out = self.projection_head(codes)
-        return F.normalize(codes,dim=1), F.normalize(out, dim=1)
-    
 class Res18(nn.Module):
     def __init__(self, feature_dim=128):
         super(Res18, self).__init__()
@@ -270,26 +147,34 @@ class simCLRMobile(nn.Module):
         x = self.base_encoder(x)
         codes = torch.flatten(x, 1)
         out = self.projection_head(codes)
-        return F.normalize(codes,dim=1), F.normalize(out, dim=1)
+        return F.normalize(codes,dim=1), F.normalize(out, dim=1)    
     
-# simCLR with squezzenet as base encoder
-class simCLRSqueeze(nn.Module):
+# simCLR with Linear as base encoder
+class simCLRLinear(nn.Module):
     def __init__(self):
         super().__init__()
-        self.base_encoder = squeezenet1_1()
-        self.projection_head = nn.Sequential(
-            nn.LazyLinear(1000,bias=False),
-            nn.BatchNorm1d(1000),
-            nn.ReLU(inplace=True),
-            nn.Linear(1000, 128),
+        self.base_encoder = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(3*32*32, 1000),
+            nn.ReLU(),
+            nn.Linear(1000, 512),
+            nn.ReLU(),
+            nn.Linear(512, 512),
+            nn.ReLU()
         )
-        
+        self.projection_head = nn.Sequential(
+            nn.Linear(512, 512, bias=False),
+            nn.BatchNorm1d(512),
+            nn.ReLU(inplace=True),
+            nn.Linear(512, 128)
+        )
+    
     def forward(self, x):
         x = self.base_encoder(x)
         codes = torch.flatten(x, 1)
         out = self.projection_head(codes)
         return F.normalize(codes,dim=1), F.normalize(out, dim=1)
-    
+
 # simCLR with small convolutional network as base encoder
 class simCLRSmall(nn.Module):
     def __init__(self):
