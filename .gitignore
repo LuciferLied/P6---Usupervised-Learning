@@ -194,3 +194,11 @@ data/cifar-10-batches-py/data_batch_5
 data/cifar-10-batches-py/data_batch_4
 data/cifar-10-batches-py/data_batch_3
 data/cifar-10-batches-py/data_batch_2
+AutoEncoder/data/AUG_PAIR/raw/t10k-images-idx3-ubyte
+AutoEncoder/data/AUG_PAIR/raw/t10k-labels-idx1-ubyte
+AutoEncoder/data/AUG_PAIR/raw/train-labels-idx1-ubyte
+AutoEncoder/data/CIFAR10Pair/raw/t10k-images-idx3-ubyte
+AutoEncoder/data/AUG_PAIR/raw/train-images-idx3-ubyte
+AutoEncoder/data/CIFAR10Pair/raw/train-images-idx3-ubyte
+AutoEncoder/data/CIFAR10Pair/raw/train-labels-idx1-ubyte
+AutoEncoder/data/CIFAR10Pair/raw/t10k-labels-idx1-ubyte
