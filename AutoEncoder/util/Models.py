@@ -2,7 +2,9 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchvision.models.resnet import resnet18, resnet34, resnet50
+from torchvision.models.resnet import resnet18
+from torchvision.models.mobilenetv2 import mobilenet_v2
+from torchvision.models.squeezenet import squeezenet1_1
 
 
 class AutoEncoder(nn.Module):
@@ -225,22 +227,15 @@ class simCLR(nn.Module):
         return F.normalize(codes,dim=1), F.normalize(out, dim=1)
     
 class Res18(nn.Module):
-    def __init__(self, feature_dim=128,name=''):
+    def __init__(self, feature_dim=128):
         super(Res18, self).__init__()
-        self.name = name
+
         self.encoder = []
-        if name == 'CIFAR10':
-            for name, module in resnet18().named_children():
-                if name == 'conv1':
-                    module = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
-                if not isinstance(module, nn.Linear) and not isinstance(module, nn.MaxPool2d):
-                    self.encoder.append(module)
-        if name == 'MNIST':
-            for name, module in resnet18().named_children():
-                if name == 'conv1':
-                    module = nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1, bias=False)
-                if not isinstance(module, nn.Linear) and not isinstance(module, nn.MaxPool2d):
-                    self.encoder.append(module)
+        for name, module in resnet18().named_children():
+            if name == 'conv1':
+                module = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+            if not isinstance(module, nn.Linear) and not isinstance(module, nn.MaxPool2d):
+                self.encoder.append(module)
                     
         # encoder
         self.encoder = nn.Sequential(*self.encoder)
@@ -253,7 +248,73 @@ class Res18(nn.Module):
         )
 
     def forward(self, x):
+        
         x = self.encoder(x)
         feature = torch.flatten(x, start_dim=1)
         out = self.g(feature)
         return F.normalize(feature, dim=-1), F.normalize(out, dim=-1)
+    
+# simCLR with MOBILENET V2 as base encoder
+class simCLRMobile(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.base_encoder = mobilenet_v2()
+        self.projection_head = nn.Sequential(
+            nn.LazyLinear(1280,bias=False),
+            nn.BatchNorm1d(1280),
+            nn.ReLU(inplace=True),
+            nn.Linear(1280, 128),
+        )
+        
+    def forward(self, x):
+        x = self.base_encoder(x)
+        codes = torch.flatten(x, 1)
+        out = self.projection_head(codes)
+        return F.normalize(codes,dim=1), F.normalize(out, dim=1)
+    
+# simCLR with squezzenet as base encoder
+class simCLRSqueeze(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.base_encoder = squeezenet1_1()
+        self.projection_head = nn.Sequential(
+            nn.LazyLinear(1000,bias=False),
+            nn.BatchNorm1d(1000),
+            nn.ReLU(inplace=True),
+            nn.Linear(1000, 128),
+        )
+        
+    def forward(self, x):
+        x = self.base_encoder(x)
+        codes = torch.flatten(x, 1)
+        out = self.projection_head(codes)
+        return F.normalize(codes,dim=1), F.normalize(out, dim=1)
+    
+# simCLR with small convolutional network as base encoder
+class simCLRSmall(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.base_encoder = nn.Sequential(
+            nn.Conv2d(3, 32, 3, padding='same'),
+            nn.ReLU(),
+            nn.BatchNorm2d(32),
+            nn.Conv2d(32, 32, 3, stride=2, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(32, 32, 3, padding='same'),
+            nn.ReLU(),
+            nn.BatchNorm2d(32),
+            nn.Conv2d(32, 8, 3),
+            nn.AvgPool2d(2, 2)
+        )
+        self.projection_head = nn.Sequential(
+            nn.LazyLinear(8,bias=False),
+            nn.BatchNorm1d(8),
+            nn.ReLU(inplace=True),
+            nn.Linear(8, 128),
+        )
+        
+    def forward(self, x):
+        x = self.base_encoder(x)
+        codes = torch.flatten(x, 1)
+        out = self.projection_head(codes)
+        return F.normalize(codes,dim=1), F.normalize(out, dim=1)
