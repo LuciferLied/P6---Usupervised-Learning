@@ -13,7 +13,7 @@ from util import Models as Model
 class Net(nn.Module):
     def __init__(self, num_class, pretrained_path):
         super(Net, self).__init__()
-
+        print(num_class)
         # encoder
         self.f = Model.Res18().encoder
         # classifier
@@ -57,7 +57,9 @@ def train_val(net, data_loader, train_optimizer):
 
 model_path = 'trained_models/Res18_CIFAR10_30_0.001.pth'
 batch_size = 256
-epochs = 50
+epochs = 15
+
+temp = model_path.split('/')
 
 train_transform = transforms.Compose([
     transforms.RandomResizedCrop(32),
@@ -84,22 +86,13 @@ for param in model.f.parameters():
 flops, params = profile(model, inputs=(torch.randn(1, 3, 32, 32).cuda(),))
 flops, params = clever_format([flops, params])
 print('# Model Params: {} FLOPs: {}'.format(params, flops))
-optimizer = optim.Adam(model.fc.parameters(), lr=1e-3, weight_decay=1e-6)
+optimizer = optim.Adam(model.fc.parameters(), lr=0.01)
 loss_criterion = nn.CrossEntropyLoss()
-results = {'train_loss': [], 'train_acc': [],
-            'test_loss': [], 'test_acc': []}
 
 best_acc = 0.0
 for epoch in range(1, epochs + 1):
     train_loss, train_acc_1 = train_val(model, train_loader, optimizer)
-    results['train_loss'].append(train_loss)
-    results['train_acc'].append(train_acc_1)
     test_loss, test_acc_1 = train_val(model, test_loader, None)
-    results['test_loss'].append(test_loss)
-    results['test_acc'].append(test_acc_1)
-    # save statistics
-    data_frame = pd.DataFrame(data=results, index=range(1, epoch + 1))
-    data_frame.to_csv('trained_models/linear_statistics.csv', index_label='epoch')
     if test_acc_1 > best_acc:
         best_acc = test_acc_1
-        torch.save(model.state_dict(), 'trained_models/linear_model.pth')
+        torch.save(model.state_dict(), 'trained_models/linear_model{}.pth'.format(temp[1]))
