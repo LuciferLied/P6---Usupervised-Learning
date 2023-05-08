@@ -14,10 +14,10 @@ from util import utils
 import seaborn as sns
 
 
-def KNN(train_data, train_labs, test_data, test_labs):
+def KNN(train_data, train_labs, test_data, test_labs, neighbors):
     classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
     
-    KNN = KNeighborsClassifier(n_neighbors=20)
+    KNN = KNeighborsClassifier(n_neighbors=neighbors)
 
     scaler = StandardScaler()
     train_data = scaler.fit_transform(train_data)
@@ -40,13 +40,13 @@ def KNN(train_data, train_labs, test_data, test_labs):
     # plt.savefig('pics/confusion_matrix.png')
     return accuracy
 
-def kmeans(train_data, train_labs):
+def kmeans(train_data, train_labs, clusters):
     scaler = StandardScaler()
     train_data = scaler.fit_transform(train_data)
-    kmeans = KMeans(n_clusters=50, n_init='auto').fit(train_data)
+    kmeans = KMeans(n_clusters=clusters, n_init='auto').fit(train_data)
     
     labels = train_labs
-    # cast to int 
+    # cast to int
     labels = np.array(labels)
     labels = labels.astype(int)
     
@@ -59,7 +59,7 @@ def kmeans(train_data, train_labs):
     print('Kmeans Accuracy', accuracy, '%')
     return accuracy
 
-def test(model, train_loader, test_loader, device):
+def test(model, train_loader, test_loader, device, neighbors_cluster):
     with torch.no_grad():
         train_codes = torch.tensor([])
         train_labs = torch.tensor([])
@@ -84,7 +84,7 @@ def test(model, train_loader, test_loader, device):
         
         print('test loaded')
         print('testing...')
-    knn_acc = KNN(train_codes, train_labs, test_codes, test_labs)
-    kmeans_acc = kmeans(train_codes,train_labs)
+    knn_acc = KNN(train_codes, train_labs, test_codes, test_labs,neighbors_cluster)
+    kmeans_acc = kmeans(train_codes,train_labs,neighbors_cluster)
     
     return knn_acc, kmeans_acc

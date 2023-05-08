@@ -57,7 +57,7 @@ def load_data(data_set, batch_size):
     
     return aug_train, aug_test_train, aug_test_test
 
-def train(data_name,aug_train, aug_test_train, aug_test_test, epochs, batch_size, lr, load):
+def train(data_name,aug_train, aug_test_train, aug_test_test, epochs, batch_size, lr, load, neighbors_cluster):
     
     if load == True:
         load_model = 'trained_models/chk/Res18_CIFAR10_30_0.001.pth'
@@ -134,7 +134,7 @@ def train(data_name,aug_train, aug_test_train, aug_test_test, epochs, batch_size
             torch.save(model.state_dict(), saveAsChkPnt)
         
         if (epoch % 5 == 0) or (epoch == epochs - 1):
-            knn_accuracy, kmeans_accuracy = test(model, aug_test_train, aug_test_test, device)
+            knn_accuracy, kmeans_accuracy = test(model, aug_test_train, aug_test_test, device, neighbors_cluster)
             values = [epoch+1+pretrained_epochs, batch_size, lr, loss.item(), knn_accuracy, kmeans_accuracy]
             csvUtil.saveToCSV(values)
             
@@ -144,6 +144,8 @@ def train(data_name,aug_train, aug_test_train, aug_test_test, epochs, batch_size
 total_epochs = 30
 batch_sizes = [128, 256, 512, 1024, 2048]
 learns = [0.001]
+neighbors_cluster = 20
+
 
 data_set = CIFAR10
 data_name = data_set.__name__
@@ -153,4 +155,4 @@ load = False
 for size in batch_sizes:
     aug_train, aug_test_train, aug_test_test = load_data(data_set, size)
     for lr in learns:
-        train(data_name ,aug_train, aug_test_train, aug_test_test, total_epochs, size, lr, load)
+        train(data_name ,aug_train, aug_test_train, aug_test_test, total_epochs, size, lr, load, neighbors_cluster)
