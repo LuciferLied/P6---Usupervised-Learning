@@ -126,7 +126,6 @@ def train(data_name,aug_train, aug_test_train, aug_test_test, epochs, batch_size
             total_num += batch_size
             total_loss += loss.item() * batch_size
             train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch + pretrained_epochs + 1, epochs + pretrained_epochs, total_loss / total_num))
-            break
         #save model for loading later
         if ((epoch + 1) % 5 == 0) or (epoch == epochs - 1):
             print('Saving model as: ', 'trained_models/chk{}_{}_{}_{}_{}.pth'.format(name, data_name, epoch + 1 + pretrained_epochs, batch_size, lr))
