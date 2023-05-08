@@ -143,12 +143,9 @@ def train(data_name,aug_train, aug_test_train, aug_test_test, epochs, batch_size
     torch.save(model, saveAs)
 
 #Settings
-total_epochs = 50
-batch_sizes = [256,512,1024]
-lr_start = 0.009
-lr_limit = 0.01 #Skal være højere end reel limit
-lr_increment = 0.002
-lr = lr_start
+total_epochs = 30
+batch_sizes = [256, 512]
+learns = [0.1, 0.001, 0.0001]
 
 data_set = CIFAR10
 data_name = data_set.__name__
@@ -157,10 +154,5 @@ load = False
 
 for size in batch_sizes:
     aug_train, aug_test_train, aug_test_test = load_data(data_set, size)
-    if lr == lr_limit:
-        lr = lr_start
-    while lr < lr_limit:
-        lr = round(lr, 3)
-        #print('Batch Size: ', size, 'Learning Rate: ', lr)
+    for lr in learns:
         train(data_name ,aug_train, aug_test_train, aug_test_test, total_epochs, size, lr, load)
-        lr += lr_increment
