@@ -78,7 +78,6 @@ def train(data_name,aug_train, aug_test_train, aug_test_test, epochs, batch_size
     model.to(device)
     name = model.__class__.__name__
     
-
     #Format print
     print('Training {} on {}, with {} epochs and batch size: {} lr {}'.format(name, data_name, epochs, batch_size, lr))
 
@@ -133,19 +132,18 @@ def train(data_name,aug_train, aug_test_train, aug_test_test, epochs, batch_size
             print('Saving model as: ', 'trained_models/chk{}_{}_{}_{}_{}.pth'.format(name, data_name, epoch + 1 + pretrained_epochs, batch_size, lr))
             saveAsChkPnt = 'trained_models/chk/{}_{}_{}_{}_{}.pth'.format(name, data_name, epoch + 1 + pretrained_epochs, batch_size, lr)
             torch.save(model.state_dict(), saveAsChkPnt)
-            
-        knn_accuracy, kmeans_accuracy = test(model, aug_test_train, aug_test_test, device)
-
-        values = [epoch+1+pretrained_epochs, batch_size, lr, loss.item(), knn_accuracy, kmeans_accuracy]
-        csvUtil.saveToCSV(values)
         
-    saveAs = 'trained_models/{}_{}_{}_{}_{}.pth'.format(name, data_name, epoch + 1 + pretrained_epochs, batch_size, lr)
-    torch.save(model, saveAs)
+        if (epoch % 5 == 0) or (epoch == epochs - 1):
+            knn_accuracy, kmeans_accuracy = test(model, aug_test_train, aug_test_test, device)
+            values = [epoch+1+pretrained_epochs, batch_size, lr, loss.item(), knn_accuracy, kmeans_accuracy]
+            csvUtil.saveToCSV(values)
+            
+    torch.save(model, 'trained_models/{}_{}_{}_{}_{}.pth'.format(name, data_name, epoch + 1 + pretrained_epochs, batch_size, lr))
 
 #Settings
 total_epochs = 30
-batch_sizes = [256, 512]
-learns = [0.1, 0.001, 0.0001]
+batch_sizes = [128, 256, 512, 1024, 2048]
+learns = [0.001]
 
 data_set = CIFAR10
 data_name = data_set.__name__
