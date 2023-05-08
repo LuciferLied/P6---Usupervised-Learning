@@ -82,7 +82,7 @@ def train(data_name,aug_train, aug_test_train, aug_test_test, epochs, batch_size
     print('Training {} on {}, with {} epochs and batch size: {} lr {}'.format(name, data_name, epochs, batch_size, lr))
 
     # Optimizer and loss function
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr,weight_decay=1e-6)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-6)
 
     temperature = 0.5
 
@@ -126,23 +126,23 @@ def train(data_name,aug_train, aug_test_train, aug_test_test, epochs, batch_size
             total_num += batch_size
             total_loss += loss.item() * batch_size
             train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch + pretrained_epochs + 1, epochs + pretrained_epochs, total_loss / total_num))
-            
+            break
         #save model for loading later
-        if (epoch % 10 == 0) or (epoch == epochs - 1):
+        if ((epoch + 1) % 5 == 0) or (epoch == epochs - 1):
             print('Saving model as: ', 'trained_models/chk{}_{}_{}_{}_{}.pth'.format(name, data_name, epoch + 1 + pretrained_epochs, batch_size, lr))
             saveAsChkPnt = 'trained_models/chk/{}_{}_{}_{}_{}.pth'.format(name, data_name, epoch + 1 + pretrained_epochs, batch_size, lr)
             torch.save(model.state_dict(), saveAsChkPnt)
         
-        if (epoch % 5 == 0) or (epoch == epochs - 1):
+        if ((epoch + 1) % 5 == 0) or (epoch == epochs - 1):
             knn_accuracy, kmeans_accuracy = test(model, aug_test_train, aug_test_test, device, neighbors_cluster)
             values = [epoch+1+pretrained_epochs, batch_size, lr, loss.item(), knn_accuracy, kmeans_accuracy]
             csvUtil.saveToCSV(values)
-            
+
     torch.save(model, 'trained_models/{}_{}_{}_{}_{}.pth'.format(name, data_name, epoch + 1 + pretrained_epochs, batch_size, lr))
 
 #Settings
 total_epochs = 30
-batch_sizes = [128, 256, 512, 1024, 2048]
+batch_sizes = [256, 512, 1024, 2048]
 learns = [0.001]
 neighbors_cluster = 20
 
