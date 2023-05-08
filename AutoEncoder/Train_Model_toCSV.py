@@ -7,6 +7,15 @@ from Test_model_toCSV import test
 from torchvision import transforms
 import torch.utils.data as data
 
+# set device
+if torch.cuda.is_available():
+    #print('Using GPU')
+    dtype = torch.float32
+    device = torch.device('cuda')
+else:
+    print('Using CPU')
+    device = torch.device('cpu')
+
 def load_data(data_set, batch_size):
     
     class AUG_PAIR(data_set):
@@ -48,19 +57,7 @@ def load_data(data_set, batch_size):
     
     return aug_train, aug_test_train, aug_test_test
 
-
-def train(data_set, epochs, batch_size, lr, load):
-    
-    # set device
-    if torch.cuda.is_available():
-        #print('Using GPU')
-        dtype = torch.float32
-        device = torch.device('cuda')
-    else:
-        print('Using CPU')
-        device = torch.device('cpu')
-
-    data_name = data_set.__name__
+def train(data_name,aug_train, aug_test_train, aug_test_test, epochs, batch_size, lr, load):
     
     if load == True:
         load_model = 'trained_models/chk/Res18_CIFAR10_30_0.001.pth'
@@ -81,7 +78,7 @@ def train(data_set, epochs, batch_size, lr, load):
     model.to(device)
     name = model.__class__.__name__
     
-    aug_train, aug_test_train, aug_test_test = load_data(data_set, batch_size)
+
     #Format print
     print('Training {} on {}, with {} epochs and batch size: {} lr {}'.format(name, data_name, epochs, batch_size, lr))
 
@@ -130,9 +127,9 @@ def train(data_set, epochs, batch_size, lr, load):
             total_num += batch_size
             total_loss += loss.item() * batch_size
             train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch + pretrained_epochs + 1, epochs + pretrained_epochs, total_loss / total_num))
-            break
+            
         #save model for loading later
-        if epoch % 10 == 0:
+        if (epoch % 10 == 0) or (epoch == epochs - 1):
             print('Saving model as: ', 'trained_models/chk{}_{}_{}_{}_{}.pth'.format(name, data_name, epoch + 1 + pretrained_epochs, batch_size, lr))
             saveAsChkPnt = 'trained_models/chk/{}_{}_{}_{}_{}.pth'.format(name, data_name, epoch + 1 + pretrained_epochs, batch_size, lr)
             torch.save(model.state_dict(), saveAsChkPnt)
@@ -146,22 +143,24 @@ def train(data_set, epochs, batch_size, lr, load):
     torch.save(model, saveAs)
 
 #Settings
-total_epochs = 1
-batch_sizes = [256]
-lr_start = 0.001
+total_epochs = 50
+batch_sizes = [256,512,1024]
+lr_start = 0.009
 lr_limit = 0.01 #Skal være højere end reel limit
 lr_increment = 0.002
 lr = lr_start
 
 data_set = CIFAR10
+data_name = data_set.__name__
 
 load = False
 
 for size in batch_sizes:
+    aug_train, aug_test_train, aug_test_test = load_data(data_set, size)
     if lr == lr_limit:
         lr = lr_start
     while lr < lr_limit:
         lr = round(lr, 3)
         #print('Batch Size: ', size, 'Learning Rate: ', lr)
-        train(data_set, total_epochs, size, lr, load)
+        train(data_name ,aug_train, aug_test_train, aug_test_test, total_epochs, size, lr, load)
         lr += lr_increment
