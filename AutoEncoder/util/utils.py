@@ -29,13 +29,13 @@ def retrieveInfo(kmeansLabels, train_target_numpyArray):
         reference_labels[i]=num
     return reference_labels
 
-def test_best_knn(KNN,train_data,train_labs,test_data,test_labs):
+def test_best_knn(KNN,train_data,train_labs,test_data,test_labs,neighbors):
     start_time = time.time()
     
     print('Testing best KNN')
     # List Hyperparameters to tune
     leaf_size = list(range(1, 2))
-    n_neighbors = list(range(1, 200))
+    n_neighbors = list(range(1, neighbors))
     p = [1, 2]
     # convert to dictionary
     hyperparameters = dict(leaf_size=leaf_size, n_neighbors=n_neighbors, p=p)

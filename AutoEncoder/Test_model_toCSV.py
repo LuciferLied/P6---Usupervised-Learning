@@ -14,7 +14,7 @@ from util import utils
 import seaborn as sns
 
 
-def KNN(train_data, train_labs, test_data, test_labs, neighbors):
+def KNN(train_data, train_labs, test_data, test_labs, neighbors, boool):
     classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
     
     KNN = KNeighborsClassifier(n_neighbors=neighbors)
@@ -30,14 +30,15 @@ def KNN(train_data, train_labs, test_data, test_labs, neighbors):
     # In order to pretty print output
     print('KNN Accuracy', accuracy, '%')
     
-    # utils.test_best_knn(KNN,train_data,train_labs,test_data,test_labs)
+    if boool:
+        utils.test_best_knn(KNN,train_data,train_labs,test_data,test_labs,neighbors)
     
-    # confmatrix = confusion_matrix(predicted, test_labs)
-    # fig, ax = plt.subplots(figsize=(6, 6))
-    # ax.xaxis.tick_top()
-    # sns.heatmap(confmatrix, annot=True, fmt=".1f", linewidths=1.5, annot_kws={'size': 8}, xticklabels=classes, yticklabels=classes)
-    # plt.yticks(rotation=0)
-    # plt.savefig('pics/confusion_matrix.png')
+    confmatrix = confusion_matrix(predicted, test_labs)
+    fig, ax = plt.subplots(figsize=(6, 6))
+    ax.xaxis.tick_top()
+    sns.heatmap(confmatrix, annot=True, fmt=".1f", linewidths=1.5, annot_kws={'size': 8}, xticklabels=classes, yticklabels=classes)
+    plt.yticks(rotation=0)
+    plt.savefig('pics/confusion_matrix.png')
     return accuracy
 
 def kmeans(train_data, train_labs, clusters):
@@ -59,7 +60,7 @@ def kmeans(train_data, train_labs, clusters):
     print('Kmeans Accuracy', accuracy, '%')
     return accuracy
 
-def test(model, train_loader, test_loader, device, neighbors_cluster):
+def test(model, train_loader, test_loader, device, neighbors_cluster, boool):
     with torch.no_grad():
         train_codes = torch.tensor([])
         train_labs = torch.tensor([])
@@ -84,7 +85,7 @@ def test(model, train_loader, test_loader, device, neighbors_cluster):
         
         print('test loaded')
         print('testing...')
-    knn_acc = KNN(train_codes, train_labs, test_codes, test_labs,neighbors_cluster)
+    knn_acc = KNN(train_codes, train_labs, test_codes, test_labs,neighbors_cluster,boool)
     kmeans_acc = kmeans(train_codes,train_labs,neighbors_cluster)
     
     return knn_acc, kmeans_acc
