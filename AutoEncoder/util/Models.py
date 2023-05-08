@@ -131,17 +131,24 @@ class Res18(nn.Module):
         out = self.g(feature)
         return F.normalize(feature, dim=-1), F.normalize(out, dim=-1)
     
-# simCLR For MNIST
-class simCLRMNIST(nn.Module):
-    def __init__(self, feature_dim=128):
-        super(simCLRMNIST, self).__init__()
+class simCLR(nn.Module):
+    def __init__(self, dataset, feature_dim=128):
+        super(simCLR, self).__init__()
 
         self.encoder = []
-        for name, module in resnet18().named_children():
-            if name == 'conv1':
-                module = nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1, bias=False)
-            if not isinstance(module, nn.Linear) and not isinstance(module, nn.MaxPool2d):
-                self.encoder.append(module)
+        if dataset == 'CIFAR10':
+            for name, module in resnet18().named_children():
+                if name == 'conv1':
+                    module = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+                if not isinstance(module, nn.Linear) and not isinstance(module, nn.MaxPool2d):
+                    self.encoder.append(module)
+                    
+        if dataset == 'MNIST':
+            for name, module in resnet18().named_children():
+                if name == 'conv1':
+                    module = nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1, bias=False)
+                if not isinstance(module, nn.Linear) and not isinstance(module, nn.MaxPool2d):
+                    self.encoder.append(module)
 
         # encoder
         self.encoder = nn.Sequential(*self.encoder)
@@ -159,7 +166,6 @@ class simCLRMNIST(nn.Module):
         feature = torch.flatten(x, start_dim=1)
         out = self.g(feature)
         return F.normalize(feature, dim=-1), F.normalize(out, dim=-1)
-
 
 # simCLR with MOBILENET V2 as base encoder
 class simCLRMobile(nn.Module):

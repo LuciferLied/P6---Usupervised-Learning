@@ -1,185 +1,167 @@
-# https://clay-atlas.com/us/blog/2021/08/03/machine-learning-en-introduction-autoencoder-with-pytorch/
-
-import csv
-import os
-import math
-import glob
-import shutil
 import torch
+from tqdm import tqdm
 from util import Models as Model
+from torchvision.datasets import CIFAR10, MNIST
 from util import CSV as csvUtil
 from Test_model_toCSV import test
+from torchvision import transforms
+import torch.utils.data as data
+
+def load_data(data_set, batch_size):
+    
+    class AUG_PAIR(data_set):
+        def __getitem__(self, index):
+            img, target = self.data[index], self.targets[index]
+
+            if self.transform is not None:
+                pos_1 = self.transform(img)
+                pos_2 = self.transform(img)
+
+            if self.target_transform is not None:
+                target = self.target_transform(target)
+
+            return pos_1, pos_2, target
+
+    train_transform = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.RandomResizedCrop(32),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
+        transforms.RandomGrayscale(p=0.2),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406],[0.229, 0.224, 0.225])
+    ])
+    
+    test_transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406],[0.229, 0.224, 0.225])
+    ])
+
+    train_data = AUG_PAIR(root='data', train=True, transform=train_transform, download=True)
+    aug_train = data.DataLoader(train_data, batch_size=batch_size, shuffle=True, pin_memory=True,drop_last=True)
+    
+    test_train_data = data_set(root='data', train=True, download=True, transform=test_transform)
+    aug_test_train = data.DataLoader(test_train_data, batch_size=batch_size, shuffle=True)
+    
+    test_test_data = data_set(root='data', train=False, transform=test_transform, download=True)
+    aug_test_test = data.DataLoader(test_test_data, batch_size=batch_size, shuffle=True)
+    
+    return aug_train, aug_test_train, aug_test_test
 
 
-
-def train(epochs, batch_size, lr, load):
-
-    import torch
-    import torch.nn as nn
-    import torch.utils.data as data
-    from torchvision import datasets
-    from torchvision.transforms import ToTensor
-    import time 
-
-
-    start = time.time()
+def train(data_set, epochs, batch_size, lr, load):
+    
     # set device
     if torch.cuda.is_available():
         #print('Using GPU')
         dtype = torch.float32
-        device = torch.device('cuda:0')
+        device = torch.device('cuda')
     else:
         print('Using CPU')
         device = torch.device('cpu')
 
-
-
-    # DataLoader
-    train_set = datasets.MNIST(
-        root="data",
-        train=True,
-        download=True,
-        transform=ToTensor(),
-    )
-    
-    # DataLoader
-    test_set = datasets.MNIST(
-        root="data",
-        train=False,
-        download=True,
-        transform=ToTensor(),
-    )
-
-    train_loader = data.DataLoader(train_set, batch_size=batch_size, shuffle=True)
-
-    # Optimizer and loss function
-
-    model_name = str(model)
-    model_name = model_name.split('(')
-    #print(model_name[0])
-
-    model.to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    loss_function = nn.MSELoss()
-    
-    lastEpoch = 0
+    data_name = data_set.__name__
     
     if load == True:
-        model.load_state_dict(torch.load('models/modelChkPnt.pth'))
-        model.eval()
-        print("Model loaded")
-        
+        load_model = 'trained_models/chk/Res18_CIFAR10_30_0.001.pth'
+        model = torch.load(load_model, map_location=torch.device(device))
+        temp = load_model.split('/')
+        vars = temp[1].split('_')
+        name = vars[0]
+        data_name = vars[1]
+        pretrained_epochs = vars[2]
+        pretrained_epochs = int(pretrained_epochs)
+        print('Model:', name,'pretrained with:', data_name, 'epochs:', pretrained_epochs, 'lr:', lr)
+        lr = vars[3].replace('.pth', '')
+        lr = float(lr)
+    else:
+        model = Model.simCLR(data_name)
+        pretrained_epochs = 0
 
-        lastLine = csvUtil.lastLineCSV()
-        lastLine = lastLine.split(',')
-        lastEpoch = int(lastLine[0])
-        if lastEpoch != total_epochs:
-            epochs = epochs - lastEpoch
-        
+    model.to(device)
+    name = model.__class__.__name__
+    
+    aug_train, aug_test_train, aug_test_test = load_data(data_set, batch_size)
+    #Format print
+    print('Training {} on {}, with {} epochs and batch size: {} lr {}'.format(name, data_name, epochs, batch_size, lr))
+
+    # Optimizer and loss function
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr,weight_decay=1e-6)
+
+    temperature = 0.5
+
+    def contrastive_loss(out_1, out_2, temperature):
+        out_1 = torch.flatten(out_1, start_dim=1)
+        out_2 = torch.flatten(out_2, start_dim=1)
+
+        out = torch.cat([out_1, out_2], dim=0)
+        # [2*B, 2*B]
+        sim_matrix = torch.exp(torch.mm(out, out.t().contiguous()) / temperature)
+        mask = (torch.ones_like(sim_matrix) - torch.eye(2 * batch_size, device=sim_matrix.device)).bool()
+        # [2*B, 2*B-1]
+        sim_matrix = sim_matrix.masked_select(mask).view(2 * batch_size, -1)
+
+        # compute loss
+        pos_sim = torch.exp(torch.sum(out_1 * out_2, dim=-1) / temperature)
+        # [2*B]
+        pos_sim = torch.cat([pos_sim, pos_sim], dim=0)
+        loss = (- torch.log(pos_sim / sim_matrix.sum(dim=-1))).mean()
+
+        return loss
 
     # Train
     for epoch in range(epochs):
-        start = time.time()
-        for data, labels in train_loader:
+        total_loss, total_num, train_bar = 0.0, 0, tqdm(aug_train)
+        for pics1, pics2, labels in train_bar:
+            pics1 = pics1.to(device)
+            pics2 = pics2.to(device)
 
-            inputs = data.view(-1, 1, 784)
-            inputs = inputs.to(device)
-            
             # Forward
-            codes, decoded = model(inputs)
-
+            _, out_1 = model(pics1)
+            _, out_2 = model(pics2)
+            
+            loss = contrastive_loss(out_1, out_2, temperature)
+            
             # Backward
             optimizer.zero_grad()
-                    
-            loss = loss_function(decoded, inputs)
             loss.backward()
             optimizer.step()
-        
+            
+            total_num += batch_size
+            total_loss += loss.item() * batch_size
+            train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}'.format(epoch + pretrained_epochs + 1, epochs + pretrained_epochs, total_loss / total_num))
+            break
         #save model for loading later
-        saveAsChkPnt = 'models/modelChkPnt.pth'
-        saveAs = 'models/model.pth'
-        torch.save(model.state_dict(), saveAsChkPnt)
-        torch.save(model, saveAs)
-        accuracy = test(saveAs, test_set, device)
-        
-        values = [epoch+1+lastEpoch, batch_size, lr, loss.item(), accuracy, time.time() - start]
-        #print(values)
-        
+        if epoch % 10 == 0:
+            print('Saving model as: ', 'trained_models/chk{}_{}_{}_{}_{}.pth'.format(name, data_name, epoch + 1 + pretrained_epochs, batch_size, lr))
+            saveAsChkPnt = 'trained_models/chk/{}_{}_{}_{}_{}.pth'.format(name, data_name, epoch + 1 + pretrained_epochs, batch_size, lr)
+            torch.save(model.state_dict(), saveAsChkPnt)
+            
+        knn_accuracy, kmeans_accuracy = test(model, aug_test_train, aug_test_test, device)
+
+        values = [epoch+1+pretrained_epochs, batch_size, lr, loss.item(), knn_accuracy, kmeans_accuracy]
         csvUtil.saveToCSV(values)
         
-        #print("Model saved as: ", saveAs)
-        #print(loss.item())
-
-
-        # Show progress
-        #print('[{}/{}] Loss:'.format(epoch+1, epochs), loss.item())
-
-    #print(codes.shape)
-
-    #print('Finished Training using', device)
-    #print('Time: ', time.time() - start)         
-
-filePaths = []
-filePaths = glob.glob('models/*.pth')
-load = False
+    saveAs = 'trained_models/{}_{}_{}_{}_{}.pth'.format(name, data_name, epoch + 1 + pretrained_epochs, batch_size, lr)
+    torch.save(model, saveAs)
 
 #Settings
-model = Model.Smol_AutoEncoder()
-total_epochs = 20
-batch_sizes = [8, 16, 32, 64, 128, 256, 512, 1024]
+total_epochs = 1
+batch_sizes = [256]
 lr_start = 0.001
-lr_limit = 0.005 #Skal være højere end reel limit
-lr_increment = 0.001
+lr_limit = 0.01 #Skal være højere end reel limit
+lr_increment = 0.002
 lr = lr_start
 
-if filePaths.__len__() == 0:
-    load = False
-    csvUtil.delCSVContent()
-    
-    for size in batch_sizes:
-        if lr == lr_limit:
-            lr = lr_start
-        while lr < lr_limit:
-            lr = round(lr, 3)
-            #print('Batch Size: ', size, 'Learning Rate: ', lr)
-            train(total_epochs, size, lr, load)
-            lr += lr_increment
-    
-elif filePaths.__len__() != 0:  
-    load = True
-    lastLine = csvUtil.lastLineCSV()
-    lastLine = lastLine.split(',')
-    for i in range(0, lastLine.__len__()):
-        lastLine[i] = float(lastLine[i])
+data_set = CIFAR10
 
-    foo = batch_sizes
-    
-    if int(lastLine[0]) == total_epochs:
-        if lr_limit-lr_increment == lastLine[2]:
-            while int(lastLine[1]) in foo:
-                batch_sizes.pop(0)
-                foo = batch_sizes
-        elif lr_limit-lr_increment != lastLine[2]:
-            for i in range(0, foo.__len__()):
-                if foo[0] != lastLine[1]:
-                    batch_sizes.pop(0)
-                    foo = batch_sizes
-        lr = lastLine[2] + lr_increment
-        load = False
-            
-    elif int(lastLine[0]) != total_epochs:
-        if lr_limit-lr_increment != lastLine[2]:
-            for i in range(0, foo.__len__()):
-                if foo[0] != lastLine[1]:
-                    batch_sizes.pop(0)
-                    foo = batch_sizes
-        lr = lastLine[2]
+load = False
 
-    for size in foo:
-        if lr == lr_limit:
-            lr = lr_start
-        while lr < lr_limit:
-            lr = round(lr, 3)
-            print('Batch Size: ', size, 'Learning Rate: ', lr)
-            train(total_epochs, size, lr, load)
-            lr += lr_increment
+for size in batch_sizes:
+    if lr == lr_limit:
+        lr = lr_start
+    while lr < lr_limit:
+        lr = round(lr, 3)
+        #print('Batch Size: ', size, 'Learning Rate: ', lr)
+        train(data_set, total_epochs, size, lr, load)
+        lr += lr_increment

@@ -37,32 +37,6 @@ train_set = datasets.CIFAR10(
 
 train_loader = data.DataLoader(train_set, batch_size=batch_size, shuffle=True)
 
-# train_unlabeled_dataset = datasets.STL10(
-#     root="data",
-#     split="unlabeled",
-#     download=True,
-#     transform=ToTensor()
-# )
-# test_labeled_dataset = datasets.STL10(
-#     root="data",
-#     split="test",
-#     download=True,
-#     transform=ToTensor()
-# )
-
-# train_unlabeled_dataloader = data.DataLoader(
-#     dataset=train_unlabeled_dataset,
-#     train=True,
-#     download=True,
-#     transform=ToTensor(),
-# )
-# test_labeled_dataloader = data.DataLoader(
-#     dataset=test_labeled_dataset,
-#     train=False,
-#     download=True,
-#     transform=ToTensor(),
-# )
-
 
 # Optimizer and loss function
 model = Model.Cifar_AutoEncoder()
