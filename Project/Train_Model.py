@@ -4,7 +4,7 @@ from tqdm import tqdm
 from util import Models as Model
 from torchvision.datasets import CIFAR10, MNIST
 from util import CSV as csvUtil
-from Test_model_toCSV import test
+from Test_model import test
 from torchvision import transforms
 import torch.utils.data as data
 
@@ -162,7 +162,7 @@ def train(data_name,aug_train, aug_test_train, aug_test_test, epochs, batch_size
     torch.save(model, 'trained_models/{}_{}_{}_{}_{}.pth'.format(name, data_name, epoch + 1 + pretrained_epochs, batch_size, lr))
 
 #Settings
-total_epochs = 30
+total_epochs = 5
 batch_sizes = [256]
 learns = [0.001]
 neighbors_cluster = 20

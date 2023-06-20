@@ -6,16 +6,17 @@ from torchvision.models.resnet import resnet18
 from torchvision.models.mobilenetv2 import mobilenet_v2
 from torchvision.models import squeezenet1_1
 
-class AE(nn.Module):
+class AE_Small(nn.Module):
     def __init__(self, dataset):
-        super(AE, self).__init__()
+        super(AE_Small, self).__init__()
 
         if dataset == 'CIFAR10':
             # Encoder
             self.encoder = nn.Sequential(
                 nn.Linear(3072, 128),
                 nn.Tanh(),
-                nn.Linear(128, 64)
+                nn.Linear(128, 64),
+                nn.Tanh(),
             )
             
             # Decoder
@@ -30,7 +31,8 @@ class AE(nn.Module):
             self.encoder = nn.Sequential(
                 nn.Linear(784, 128),
                 nn.Tanh(),
-                nn.Linear(128, 64)
+                nn.Linear(128, 64),
+                nn.Tanh(),
             )
             
             # Decoder
@@ -47,9 +49,65 @@ class AE(nn.Module):
         
         return codes, decoded
 
-class AE_Conv(nn.Module):
+class AE_Big(nn.Module):
+    def __init__(self,dataset):
+        super(AE_Big, self).__init__()
+        
+        if dataset == 'CIFAR10':
+            # Encoder
+            self.encoder = nn.Sequential(
+                nn.Linear(3072, 784),
+                nn.Tanh(),
+                nn.Linear(784, 128),
+                nn.Tanh(),
+                nn.Linear(128, 64),
+                nn.Tanh(),
+                nn.Linear(64, 16)
+            )
+            
+            # Decoder
+            self.decoder = nn.Sequential(
+                nn.Linear(16, 64),
+                nn.Tanh(),
+                nn.Linear(64, 128),
+                nn.Tanh(),
+                nn.Linear(128, 784),
+                nn.Tanh(),
+                nn.Linear(784, 3072),
+                nn.Sigmoid()
+            )
+            
+        if dataset == 'MNIST':
+            # Encoder
+            self.encoder = nn.Sequential(
+                nn.Linear(784, 128),
+                nn.Tanh(),
+                nn.Linear(128, 64),
+                nn.Tanh(),
+                nn.Linear(64, 16),
+                nn.Tanh(),
+            )
+            
+            # Decoder
+            self.decoder = nn.Sequential(
+                nn.Linear(16, 64),
+                nn.Tanh(),
+                nn.Linear(64, 128),
+                nn.Tanh(),
+                nn.Linear(128, 784),
+                nn.Sigmoid()
+            )
+            
+    def forward(self, inputs):
+        inputs = inputs.flatten(start_dim=1)
+        codes = self.encoder(inputs)
+        decoded = self.decoder(codes)
+        
+        return codes, decoded
+
+class AE_Conv_small(nn.Module):
     def __init__(self, dataset):
-        super(AE_Conv, self).__init__()
+        super(AE_Conv_small, self).__init__()
 
         # Encoder
         if dataset == 'CIFAR10':
@@ -88,6 +146,84 @@ class AE_Conv(nn.Module):
                 nn.ReLU(),
                 nn.BatchNorm2d(32),
                 nn.Conv2d(32, 8, 3),
+                nn.AvgPool2d(2, 2)
+            )
+            
+            # Decoder
+            self.decoder = nn.Sequential(
+                nn.Upsample(scale_factor=2, mode='nearest'),
+                nn.ConvTranspose2d(8, 32, 3),
+                nn.Upsample(scale_factor=2, mode='nearest'),
+                nn.Conv2d(32, 32, 3, padding='same'),
+                nn.ReLU(),
+                nn.BatchNorm2d(32),
+                nn.Conv2d(32, 1, 3, padding='same'),
+                nn.Sigmoid()
+            )
+
+    def forward(self, inputs):
+        codes = self.encoder(inputs)
+        decoded = self.decoder(codes)
+        
+        return codes, decoded
+
+class AE_Conv_big(nn.Module):
+    def __init__(self, dataset):
+        super(AE_Conv_big, self).__init__()
+
+        # Encoder
+        if dataset == 'CIFAR10':
+            self.encoder = nn.Sequential(
+                nn.Conv2d(3, 32, 32, padding='same'),
+                nn.ReLU(),
+                nn.BatchNorm2d(32),
+                nn.Conv2d(32, 32, 3, stride=2, padding=1),
+                nn.ReLU(),
+                nn.Conv2d(32, 32, 3, padding='same'),
+                nn.BatchNorm2d(32),
+                nn.Conv2d(32, 32, 3, stride=2, padding=1),
+                nn.ReLU(),
+                nn.Conv2d(32, 32, 3, padding='same'),
+                nn.BatchNorm2d(32),
+                nn.Conv2d(32, 32, 3, stride=2, padding=1),
+                nn.ReLU(),
+                nn.Conv2d(32, 32, 3, padding='same'),
+                nn.ReLU(),
+                nn.BatchNorm2d(32),
+                nn.Conv2d(32, 14, 3),
+                nn.AvgPool2d(2, 2)
+            )
+            
+            # Decoder
+            self.decoder = nn.Sequential(
+                nn.Upsample(scale_factor=2, mode='nearest'),
+                nn.ConvTranspose2d(8, 32, 3),
+                nn.Upsample(scale_factor=2, mode='nearest'),
+                nn.Conv2d(32, 32, 3, padding='same'),
+                nn.ReLU(),
+                nn.BatchNorm2d(32),
+                nn.Conv2d(32, 3, 3, padding='same'),
+                nn.Sigmoid()
+            )
+        if dataset == 'MNIST':
+            self.encoder = nn.Sequential(
+                nn.Conv2d(1, 32, 32, padding='same'),
+                nn.ReLU(),
+                nn.BatchNorm2d(32),
+                nn.Conv2d(32, 32, 3, stride=2, padding=1),
+                nn.ReLU(),
+                nn.Conv2d(32, 32, 3, padding='same'),
+                nn.BatchNorm2d(32),
+                nn.Conv2d(32, 32, 3, stride=2, padding=1),
+                nn.ReLU(),
+                nn.Conv2d(32, 32, 3, padding='same'),
+                nn.BatchNorm2d(32),
+                nn.Conv2d(32, 32, 3, stride=2, padding=1),
+                nn.ReLU(),
+                nn.Conv2d(32, 32, 3, padding='same'),
+                nn.ReLU(),
+                nn.BatchNorm2d(32),
+                nn.Conv2d(32, 14, 3),
                 nn.AvgPool2d(2, 2)
             )
             
