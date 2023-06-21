@@ -45,12 +45,10 @@ def kmeans(train_data, train_labs, clusters):
     train_data = scaler.fit_transform(train_data)
     kmeans = KMeans(n_clusters=clusters, n_init='auto').fit(train_data)
     
-    labels = train_labs
     # cast to int
-    labels = np.array(labels)
+    labels = np.array(train_labs)
     labels = labels.astype(int)
     
-    labels = np.array(labels)
     ref_labels = utils.retrieveInfo(kmeans.labels_, labels)
     num_predicted = utils.assignPredictions(kmeans.labels_, ref_labels)
     accuracy = utils.computeAccuracy(num_predicted, labels)
@@ -81,7 +79,6 @@ def test(model, train_loader, test_loader, device, neighbors_cluster, boool):
             test_codes = torch.cat((test_codes, codes.flatten(1).cpu()), 0)
             test_labs = torch.cat((test_labs, labels), 0)
             if len(test_codes) > 9000:
-                print('test ', len(test_codes))
                 break
         
         print('test loaded')
