@@ -13,33 +13,33 @@ class AE_Small(nn.Module):
         if dataset == 'CIFAR10':
             # Encoder
             self.encoder = nn.Sequential(
-                nn.Linear(3072, 128),
+                nn.Linear(3072, 1024),
                 nn.Tanh(),
-                nn.Linear(128, 64),
+                nn.Linear(1024, 128),
                 nn.Tanh(),
             )
             
             # Decoder
             self.decoder = nn.Sequential(
-                nn.Linear(64, 128),
+                nn.Linear(128, 1024),
                 nn.Tanh(),
-                nn.Linear(128, 3072),
+                nn.Linear(1024, 3072),
                 nn.Sigmoid()
             )
         if dataset == 'MNIST':
             # Encoder
             self.encoder = nn.Sequential(
-                nn.Linear(784, 128),
+                nn.Linear(784, 256),
                 nn.Tanh(),
-                nn.Linear(128, 64),
+                nn.Linear(256, 128),
                 nn.Tanh(),
             )
             
             # Decoder
             self.decoder = nn.Sequential(
-                nn.Linear(64, 128),
+                nn.Linear(128, 256),
                 nn.Tanh(),
-                nn.Linear(128, 784),
+                nn.Linear(256, 784),
                 nn.Sigmoid()
             )
     def forward(self, inputs):
@@ -226,7 +226,7 @@ class AE_Conv_big(nn.Module):
                 nn.Conv2d(32, 14, 3),
                 nn.AvgPool2d(2, 2)
             )
-            
+
             # Decoder
             self.decoder = nn.Sequential(
                 nn.Upsample(scale_factor=2, mode='nearest'),
@@ -263,7 +263,7 @@ class AE_ResNet(nn.Module):
                 nn.LazyLinear(512),
                 nn.ReLU(),
                 nn.BatchNorm1d(512),
-                nn.LazyLinear(3072),
+                nn.LazyLinear(128),
             )
         if dataset == 'MNIST':
             self.encoder = []
@@ -278,7 +278,7 @@ class AE_ResNet(nn.Module):
                 nn.LazyLinear(512),
                 nn.ReLU(),
                 nn.BatchNorm1d(512),
-                nn.LazyLinear(784),
+                nn.LazyLinear(128),
             )
 
     def forward(self, inputs):
@@ -305,7 +305,6 @@ class simCLR(nn.Module):
                     module = nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1, bias=False)
                 if not isinstance(module, nn.Linear) and not isinstance(module, nn.MaxPool2d):
                     self.encoder.append(module)
-
         # encoder
         self.encoder = nn.Sequential(*self.encoder)
         # projection head
